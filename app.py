@@ -37,12 +37,19 @@ df_dosen = pd.read_csv("soal_dosen.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv")
 df_pro = pd.read_csv("uts_pro_sains_data.csv")
 df_abs_com_pro_reg = pd.read_csv("absensi_com_pro_reguler_sains_data.csv")
+df_abs_com_pro_pros = pd.read_csv("absensi_com_pro_pros_sains_data.csv")
 df_abs_ds_reg = pd.read_csv("absensi_ds_reguler_sains_data.csv")
+df_abs_ds_pros = pd.read_csv("absensi_ds_pros_sains_data.csv")
 df_abs_wcd_reg = pd.read_csv("absensi_wcd_reguler_sains_data.csv")
+df_abs_wcd_pros = pd.read_csv("absensi_wcd_pros_sains_data.csv")
 df_abs_oop_reg = pd.read_csv("absensi_oop_reguler_sains_data.csv")
+df_abs_oop_pros = pd.read_csv("absensi_oop_pros_sains_data.csv")
 df_abs_dbs_reg = pd.read_csv("absensi_dbs_reguler_sains_data.csv")
+df_abs_dbs_pros = pd.read_csv("absensi_dbs_pros_sains_data.csv")
 df_abs_sta_reg = pd.read_csv("absensi_sta_reguler_sains_data.csv")
+df_abs_sta_pros = pd.read_csv("absensi_sta_pros_sains_data.csv")
 df_abs_dw_reg = pd.read_csv("absensi_dw_reguler_sains_data.csv")
+df_abs_dw_pros = pd.read_csv("absensi_dw_pros_sains_data.csv")
 df_mhs_reg = pd.read_csv("total_mhs_reguler_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
 df_mhs_pro = pd.read_csv("total_mhs_pro_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
 
@@ -131,8 +138,89 @@ def analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg ):
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
 
-def analisa_statistik_kehadiran_oop_reg(df_abs_oop_reg):
+def analisa_statistik_kehadiran_com_pro_pros(df_abs_com_pro_pros):
     st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+
+    # Pastikan kolom numerik
+    df_abs_com_pro_pros ["Presentase"] = pd.to_numeric(df_abs_com_pro_pros ["Presentase"], errors="coerce")
+    df_abs_com_pro_pros ["Hadir"] = pd.to_numeric(df_abs_com_pro_pros ["Hadir"], errors="coerce")
+    df_abs_com_pro_pros ["Pertemuan"] = pd.to_numeric(df_abs_com_pro_pros ["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_com_pro_pros ["Kategori Kehadiran"] = df_abs_com_pro_pros ["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_com_pro_pros ["Presentase"].mean()
+    jumlah_100 = (df_abs_com_pro_pros ["Presentase"] == 100).sum()
+    distribusi = df_abs_com_pro_pros ["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_com_pro_pros [["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_com_pro_pros ,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True, key="grafik_kehadiran_cp_pro")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_cp_pro")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="piekehadiran_cp_pro")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_com_pro_pros [df_abs_com_pro_pros ["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_com_pro_pros [df_abs_com_pro_pros ["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
+
+def analisa_statistik_kehadiran_oop_reg(df_abs_oop_reg):
+    st.subheader("📊 Analisa Kehadiran: OOP")
 
     # Pastikan kolom numerik
     df_abs_oop_reg ["Presentase"] = pd.to_numeric(df_abs_oop_reg ["Presentase"], errors="coerce")
@@ -212,9 +300,90 @@ def analisa_statistik_kehadiran_oop_reg(df_abs_oop_reg):
                      use_container_width=True)
 
 
+def analisa_statistik_kehadiran_oop_pros(df_abs_oop_pros):
+    st.subheader("📊 Analisa Kehadiran: OOP")
+
+    # Pastikan kolom numerik
+    df_abs_oop_pros ["Presentase"] = pd.to_numeric(df_abs_oop_pros ["Presentase"], errors="coerce")
+    df_abs_oop_pros ["Hadir"] = pd.to_numeric(df_abs_oop_pros ["Hadir"], errors="coerce")
+    df_abs_oop_pros ["Pertemuan"] = pd.to_numeric(df_abs_oop_pros ["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_oop_pros ["Kategori Kehadiran"] = df_abs_oop_pros ["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_oop_pros ["Presentase"].mean()
+    jumlah_100 = (df_abs_oop_pros ["Presentase"] == 100).sum()
+    distribusi = df_abs_oop_pros ["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_oop_pros [["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_oop_pros ,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True, key="grafik_kehadiran_oop_pros")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_oop_pros")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_oop_pros")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_oop_pros [df_abs_oop_pros ["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_oop_pros [df_abs_oop_pros ["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
+
 
 def analisa_statistik_kehadiran_wcd_reg(df_abs_wcd_reg):
-    st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+    st.subheader("📊 Analisa Kehadiran: WCD")
 
     # Pastikan kolom numerik
     df_abs_wcd_reg ["Presentase"] = pd.to_numeric(df_abs_wcd_reg ["Presentase"], errors="coerce")
@@ -293,8 +462,89 @@ def analisa_statistik_kehadiran_wcd_reg(df_abs_wcd_reg):
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
 
+def analisa_statistik_kehadiran_wcd_pros(df_abs_wcd_pros):
+    st.subheader("📊 Analisa Kehadiran: WCD")
+
+    # Pastikan kolom numerik
+    df_abs_wcd_pros ["Presentase"] = pd.to_numeric(df_abs_wcd_pros ["Presentase"], errors="coerce")
+    df_abs_wcd_pros ["Hadir"] = pd.to_numeric(df_abs_wcd_pros ["Hadir"], errors="coerce")
+    df_abs_wcd_pros ["Pertemuan"] = pd.to_numeric(df_abs_wcd_pros ["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_wcd_pros["Kategori Kehadiran"] = df_abs_wcd_pros["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_wcd_pros["Presentase"].mean()
+    jumlah_100 = (df_abs_wcd_pros["Presentase"] == 100).sum()
+    distribusi = df_abs_wcd_pros["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_wcd_pros [["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_wcd_pros ,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True,key="grafik_kehadiran_wcd_pro")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_wcd_pro")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_wcd_pro")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_wcd_pros [df_abs_wcd_pros ["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_wcd_pros [df_abs_wcd_pros ["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
+
 def analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg):
-    st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+    st.subheader("📊 Analisa Kehadiran: Database Systems")
 
     # Pastikan kolom numerik
     df_abs_dbs_reg ["Presentase"] = pd.to_numeric(df_abs_dbs_reg ["Presentase"], errors="coerce")
@@ -332,7 +582,7 @@ def analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg):
     # Grafik batang jumlah hadir
     st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
     fig_hadir = px.bar(
-        df_abs_wcd_reg ,
+        df_abs_dbs_reg ,
         x="Nama_Mahasiswa",
         y="Hadir",
         text="Hadir",
@@ -373,9 +623,89 @@ def analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg):
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
 
+def analisa_statistik_kehadiran_dbs_pros(df_abs_dbs_pros):
+    st.subheader("📊 Analisa Kehadiran: Database Systems")
+
+    # Pastikan kolom numerik
+    df_abs_dbs_pros ["Presentase"] = pd.to_numeric(df_abs_dbs_pros ["Presentase"], errors="coerce")
+    df_abs_dbs_pros ["Hadir"] = pd.to_numeric(df_abs_dbs_pros ["Hadir"], errors="coerce")
+    df_abs_dbs_pros ["Pertemuan"] = pd.to_numeric(df_abs_dbs_pros ["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_dbs_pros ["Kategori Kehadiran"] = df_abs_dbs_pros ["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_dbs_pros ["Presentase"].mean()
+    jumlah_100 = (df_abs_dbs_pros ["Presentase"] == 100).sum()
+    distribusi = df_abs_dbs_pros ["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_dbs_pros [["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_dbs_pros ,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True,key="grafik_kehadiran_dbs_pros")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_dbs_pros")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_dbs_pros")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_dbs_pros [df_abs_dbs_pros ["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_dbs_pros [df_abs_dbs_pros ["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
 
 def analisa_statistik_kehadiran_ds_reg(df_abs_ds_reg):
-    st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+    st.subheader("📊 Analisa Kehadiran: Data Structures")
 
     # Pastikan kolom numerik
     df_abs_ds_reg["Presentase"] = pd.to_numeric(df_abs_ds_reg["Presentase"], errors="coerce")
@@ -454,8 +784,88 @@ def analisa_statistik_kehadiran_ds_reg(df_abs_ds_reg):
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
 
+def analisa_statistik_kehadiran_ds_pros(df_abs_ds_pros):
+    st.subheader("📊 Analisa Kehadiran: Data Structures")
+
+    # Pastikan kolom numerik
+    df_abs_ds_pros["Presentase"] = pd.to_numeric(df_abs_ds_pros["Presentase"], errors="coerce")
+    df_abs_ds_pros["Hadir"] = pd.to_numeric(df_abs_ds_pros["Hadir"], errors="coerce")
+    df_abs_ds_pros["Pertemuan"] = pd.to_numeric(df_abs_ds_pros["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_ds_pros["Kategori Kehadiran"] = df_abs_ds_pros["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_ds_pros["Presentase"].mean()
+    jumlah_100 = (df_abs_ds_pros["Presentase"] == 100).sum()
+    distribusi = df_abs_ds_pros["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_ds_pros[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_ds_pros,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True, key="grafik_kehadiran_ds_pros")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_ds_pros")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_ds_pros")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_ds_pros[df_abs_ds_pros["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_ds_pros[df_abs_ds_pros["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
 def analisa_statistik_kehadiran_sta_reg(df_abs_sta_reg):
-    st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+    st.subheader("📊 Analisa Kehadiran: Statistical Thinking")
 
     # Pastikan kolom numerik
     df_abs_sta_reg["Presentase"] = pd.to_numeric(df_abs_sta_reg["Presentase"], errors="coerce")
@@ -534,8 +944,89 @@ def analisa_statistik_kehadiran_sta_reg(df_abs_sta_reg):
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
 
+def analisa_statistik_kehadiran_sta_pros(df_abs_sta_pros):
+    st.subheader("📊 Analisa Kehadiran: Statistical Thinking")
+
+    # Pastikan kolom numerik
+    df_abs_sta_pros["Presentase"] = pd.to_numeric(df_abs_sta_pros["Presentase"], errors="coerce")
+    df_abs_sta_pros["Hadir"] = pd.to_numeric(df_abs_sta_pros["Hadir"], errors="coerce")
+    df_abs_sta_pros["Pertemuan"] = pd.to_numeric(df_abs_sta_pros["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_sta_pros["Kategori Kehadiran"] = df_abs_sta_pros["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_sta_pros["Presentase"].mean()
+    jumlah_100 = (df_abs_sta_pros["Presentase"] == 100).sum()
+    distribusi = df_abs_sta_pros["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_sta_pros[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_sta_pros,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True, key="grafik_kehadiran_sta_pros")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_sta_pros")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_sta_pros")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_sta_pros[df_abs_sta_pros["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_sta_pros[df_abs_sta_pros["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
+
 def analisa_statistik_kehadiran_dw_reg(df_abs_dw_reg):
-    st.subheader("📊 Analisa Kehadiran: Communication Protocols")
+    st.subheader("📊 Analisa Kehadiran: Data Wrangling")
 
     # Pastikan kolom numerik
     df_abs_dw_reg["Presentase"] = pd.to_numeric(df_abs_dw_reg["Presentase"], errors="coerce")
@@ -613,6 +1104,87 @@ def analisa_statistik_kehadiran_dw_reg(df_abs_dw_reg):
     else:
         st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
                      use_container_width=True)
+
+def analisa_statistik_kehadiran_dw_pros(df_abs_dw_pros):
+    st.subheader("📊 Analisa Kehadiran: Data Wrangling")
+
+    # Pastikan kolom numerik
+    df_abs_dw_pros["Presentase"] = pd.to_numeric(df_abs_dw_pros["Presentase"], errors="coerce")
+    df_abs_dw_pros["Hadir"] = pd.to_numeric(df_abs_dw_pros["Hadir"], errors="coerce")
+    df_abs_dw_pros["Pertemuan"] = pd.to_numeric(df_abs_dw_pros["Pertemuan"], errors="coerce")
+
+    # Tambahkan kategori kehadiran
+    def kategori(p):
+        if p == 100:
+            return "Sangat Baik"
+        elif p >= 75:
+            return "Baik"
+        elif p >= 60:
+            return "Cukup"
+        else:
+            return "Kurang"
+    df_abs_dw_pros["Kategori Kehadiran"] = df_abs_dw_pros["Presentase"].apply(kategori)
+
+    # Statistik dasar
+    rata2 = df_abs_dw_pros["Presentase"].mean()
+    jumlah_100 = (df_abs_dw_pros["Presentase"] == 100).sum()
+    distribusi = df_abs_dw_pros["Kategori Kehadiran"].value_counts().reset_index()
+    distribusi.columns = ["Kategori", "Jumlah"]
+
+    # Metrik ringkas
+    col1, col2 = st.columns(2)
+    col1.metric("📌 Rata-rata Kehadiran", f"{rata2:.2f}%")
+    col2.metric("✅ Jumlah Hadir 100%", f"{jumlah_100} Mahasiswa")
+
+    # Tabel utama
+    st.write("### 📋 Tabel Kehadiran Mahasiswa")
+    st.dataframe(df_abs_dw_pros[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                 use_container_width=True)
+
+    # Grafik batang jumlah hadir
+    st.write("### 📈 Grafik Jumlah Kehadiran per Mahasiswa")
+    fig_hadir = px.bar(
+        df_abs_dw_pros,
+        x="Nama_Mahasiswa",
+        y="Hadir",
+        text="Hadir",
+        title="Jumlah Kehadiran per Mahasiswa",
+        color="Kategori Kehadiran",
+        labels={"Hadir": "Jumlah Hadir"},
+    )
+    fig_hadir.update_layout(xaxis_tickangle=-45)
+    fig_hadir.update_traces(textposition="outside")
+    st.plotly_chart(fig_hadir, use_container_width=True, key="grafik_kehadiran_dw_pros")
+
+    # Distribusi Kategori Kehadiran
+    st.write("### 📊 Distribusi Kategori Kehadiran")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        fig_bar = px.bar(distribusi, x="Kategori", y="Jumlah", text="Jumlah", color="Kategori")
+        fig_bar.update_traces(textposition="outside")
+        st.plotly_chart(fig_bar, use_container_width=True, key="bar_kehadiran_dw_pros")
+    with col_b:
+        fig_pie = px.pie(distribusi, names="Kategori", values="Jumlah")
+        st.plotly_chart(fig_pie, use_container_width=True, key="pie_kehadiran_dw_pros")
+
+    # Mahasiswa dengan presentase = 0
+    st.write("### 🚨 Mahasiswa dengan Kehadiran 0%")
+    nol_df = df_abs_dw_pros[df_abs_dw_pros["Presentase"] == 0]
+    if nol_df.empty:
+        st.success("Tidak ada mahasiswa dengan kehadiran 0%")
+    else:
+        st.error(f"Ada {len(nol_df)} mahasiswa dengan kehadiran 0%:")
+        st.dataframe(nol_df[["Nama_Mahasiswa", "Pertemuan", "Hadir", "Presentase"]])
+
+    # Mahasiswa hadir ≥ 7
+    st.write("### 📗 Mahasiswa dengan Jumlah Hadir ≥ 7")
+    hadir_7plus_df = df_abs_dw_pros[df_abs_dw_pros["Hadir"] >= 7]
+    if hadir_7plus_df.empty:
+        st.warning("Tidak ada mahasiswa yang hadir ≥ 7 kali")
+    else:
+        st.dataframe(hadir_7plus_df[["Nama_Mahasiswa", "Hadir", "Presentase", "Kategori Kehadiran"]],
+                     use_container_width=True)
+
 
 def statistik_soal_dosen(df_dosen):
     st.header("📘 Statistik Dataset Soal Dosen")
@@ -911,7 +1483,37 @@ elif menu == "Kehadiran Mahasiswa":
 
     elif sub_kelas == "Kelas Pro dan Aksel":
         st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
-        st.info("📌 Visualisasi kehadiran untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        #st.info("📌 Visualisasi kehadiran untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Communication Protocols", 
+            "Web Client Development", 
+            "Object Oriented Programming",
+            "Data Structures", 
+            "Database Systems",
+            "Statistical Thinking",
+            "Data Wrangling"
+        ])
+
+        with tab1:
+            analisa_statistik_kehadiran_com_pro_pros(df_abs_com_pro_pros)
+
+        with tab2:
+            analisa_statistik_kehadiran_wcd_pros(df_abs_wcd_pros)
+
+        with tab3:
+            analisa_statistik_kehadiran_oop_pros(df_abs_oop_pros)
+
+        with tab4:
+            analisa_statistik_kehadiran_ds_pros(df_abs_ds_pros)
+
+        with tab5:
+            analisa_statistik_kehadiran_dbs_pros(df_abs_dbs_pros)
+        
+        with tab6:
+            analisa_statistik_kehadiran_sta_pros(df_abs_sta_pros)
+
+        with tab7:
+            analisa_statistik_kehadiran_dw_pros(df_abs_dw_pros)
 
 # ====== NILAI UTS ======
 elif menu == "Nilai UTS Mahasiswa":
