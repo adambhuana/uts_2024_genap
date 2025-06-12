@@ -2,7 +2,32 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import seaborn as sns
+import matplotlib as plt
 
+def login():
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        st.title("🔐 Login Mahasiswa Sains Data")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if st.button("Login"):
+            if username == "adam" and password == "adam":
+                st.success("✅ Login berhasil!")
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("❌ Username atau password salah.")
+
+        st.stop()
+login()
+
+if st.sidebar.button("🔓 Logout"):
+    st.session_state.logged_in = False
+    st.rerun()
 
 df_dosen = pd.read_csv("soal_dosen.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv")
@@ -14,6 +39,8 @@ df_abs_oop_reg = pd.read_csv("absensi_oop_reguler_sains_data.csv")
 df_abs_dbs_reg = pd.read_csv("absensi_dbs_reguler_sains_data.csv")
 df_abs_sta_reg = pd.read_csv("absensi_sta_reguler_sains_data.csv")
 df_abs_dw_reg = pd.read_csv("absensi_dw_reguler_sains_data.csv")
+df_mhs_reg = pd.read_csv("total_mhs_reguler_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
+df_mhs_pro = pd.read_csv("total_mhs_pro_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
 
 
 import pandas as pd
@@ -730,7 +757,70 @@ def statistik_per_mahasiswa_by_kelas(df_reguler, df_pro):
     fig.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig, use_container_width=True)
 
-st.set_page_config(page_title="Analisa Nilai Sains Data", layout="wide")
+def statistik_visualisasi_mahasiswa_reguler(df_mhs_reg):
+    st.title("📊 Data Mahasiswa Reguler Sains Data")
+
+    # Menampilkan seluruh data mahasiswa
+    st.subheader("📋 Seluruh Data Mahasiswa")
+    st.dataframe(df_mhs_reg)
+
+    # Menampilkan total keseluruhan mahasiswa
+    total_mahasiswa = len(df_mhs_reg)
+    st.subheader("🔢 Total Mahasiswa")
+    st.metric(label="Jumlah Mahasiswa", value=total_mahasiswa)
+
+    # Visualisasi jumlah mahasiswa per angkatan
+    st.subheader("📈 Jumlah Mahasiswa per Angkatan")
+    fig1 = px.histogram(df_mhs_reg, x="Angkatan", color="Angkatan",
+                        title="Distribusi Mahasiswa per Angkatan",
+                        labels={"Angkatan": "Angkatan", "count": "Jumlah"},
+                        category_orders={"Angkatan": sorted(df_mhs_reg['Angkatan'].unique())},
+                        color_discrete_sequence=px.colors.sequential.Blues)
+    st.plotly_chart(fig1)
+
+    # Visualisasi jumlah mahasiswa per tahun masuk
+    st.subheader("📊 Jumlah Mahasiswa per Tahun Masuk")
+    fig2 = px.histogram(df_mhs_reg, x="Tahun", color="Tahun",
+                        title="Distribusi Mahasiswa per Tahun Masuk",
+                        labels={"Tahun": "Tahun Masuk", "count": "Jumlah"},
+                        category_orders={"Tahun": sorted(df_mhs_reg['Tahun'].dropna().unique())},
+                        color_discrete_sequence=px.colors.sequential.Greens)
+    st.plotly_chart(fig2)
+
+def tampilkan_statistik_mahasiswa(df_mhs_pro):
+    st.title("📊 Statistik Data Mahasiswa Prodi Sains")
+
+    # Menampilkan seluruh data mahasiswa
+    st.subheader("📋 Data Mahasiswa")
+    st.dataframe(df_mhs_pro)
+
+    # Menampilkan total mahasiswa
+    total = len(df_mhs_pro)
+    st.metric("🎓 Total Mahasiswa", total)
+
+    # Statistik deskriptif (jika ada kolom numerik)
+    #st.subheader("📈 Statistik Deskriptif")
+    #st.write(df_mhs_pro.describe(include='all'))
+
+    # Visualisasi jumlah mahasiswa per angkatan
+    if 'Angkatan' in df_mhs_pro.columns:
+        st.subheader("📊 Distribusi Mahasiswa per Angkatan")
+        fig1 = px.histogram(df_mhs_pro, x="Angkatan", color="Angkatan",
+                            title="Jumlah Mahasiswa per Angkatan",
+                            labels={"Angkatan": "Angkatan", "count": "Jumlah"},
+                            category_orders={"Angkatan": sorted(df_mhs_pro['Angkatan'].dropna().unique())},
+                            color_discrete_sequence=px.colors.sequential.Plasma)
+        st.plotly_chart(fig1)
+
+    # Visualisasi jumlah mahasiswa per tahun masuk
+    if 'Tahun' in df_mhs_pro.columns:
+        st.subheader("📊 Distribusi Mahasiswa per Tahun Masuk")
+        fig2 = px.histogram(df_mhs_pro, x="Tahun", color="Tahun",
+                            title="Jumlah Mahasiswa per Tahun Masuk",
+                            labels={"Tahun": "Tahun Masuk", "count": "Jumlah"},
+                            category_orders={"Tahun": sorted(df_mhs_pro['Tahun'].dropna().unique())},
+                            color_discrete_sequence=px.colors.sequential.Teal)
+        st.plotly_chart(fig2)
 st.markdown("<h1 style='text-align: center; color: #4A6D8C;'>🎓 Analisa Nilai Program Studi Sains Data</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -742,7 +832,7 @@ import base64
 with open("logo-cakrawala-black.png", "rb") as image_file:
     encoded = base64.b64encode(image_file.read()).decode()
 
-# Tampilkan di sidebar
+
 st.sidebar.markdown(
     f"""
     <div style='text-align: center;'>
@@ -754,10 +844,26 @@ st.sidebar.markdown(
 )
 
 # ====== SIDEBAR MENU ======
-menu = st.sidebar.selectbox("📂 Pilih Menu", ["Kehadiran Mahasiswa", "Nilai UTS Mahasiswa"])
+menu = st.sidebar.selectbox("📂 Pilih Menu", ["Jumlah Mahasiswa","Kehadiran Mahasiswa", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
+
+# ====== Jumlah Seluruh Mahasiswa ======
+if menu == "Jumlah Mahasiswa":
+    st.title("📅 Total Mahasiswa")
+
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Mahasiswa - Kelas Reguler")
+        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Reguler.")
+        statistik_visualisasi_mahasiswa_reguler(df_mhs_reg)
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        tampilkan_statistik_mahasiswa(df_mhs_pro)
 
 # ====== KEHADIRAN ======
-if menu == "Kehadiran Mahasiswa":
+elif menu == "Kehadiran Mahasiswa":
     st.title("📅 Kehadiran Mahasiswa")
 
     # Sub-menu kelas
@@ -827,6 +933,54 @@ elif menu == "Nilai UTS Mahasiswa":
 
     with tab5:
         statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
+
+elif menu == "Sentimen FeedBack Mahasiswa":
+    st.title("📅 Sentimen FeedBack Mahasiswa")
+
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Kehadiran - Kelas Reguler")
+
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Communication Protocols", 
+            "Web Client Development", 
+            "Object Oriented Programming",
+            "Data Structures", 
+            "Database Systems",
+            "Statistical Thinking",
+            "Data Wrangling"
+        ])
+
+        with tab1:
+            analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg)
+
+        with tab2:
+            analisa_statistik_kehadiran_wcd_reg(df_abs_wcd_reg)
+
+        with tab3:
+            analisa_statistik_kehadiran_oop_reg(df_abs_oop_reg)
+
+        with tab4:
+            analisa_statistik_kehadiran_ds_reg(df_abs_ds_reg)
+
+        with tab5:
+            analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg)
+        
+        with tab6:
+            analisa_statistik_kehadiran_sta_reg(df_abs_sta_reg)
+
+        with tab7:
+            analisa_statistik_kehadiran_dw_reg(df_abs_dw_reg)
+                
+        
+
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi kehadiran untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+
+
 # ====== FOOTER ======
 st.markdown("---", unsafe_allow_html=True)
 st.markdown(
