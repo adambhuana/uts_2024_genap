@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+
 df_dosen = pd.read_csv("soal_dosen.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv")
 df_pro = pd.read_csv("uts_pro_sains_data.csv")
@@ -733,6 +734,25 @@ st.set_page_config(page_title="Analisa Nilai Sains Data", layout="wide")
 st.markdown("<h1 style='text-align: center; color: #4A6D8C;'>🎓 Analisa Nilai Program Studi Sains Data</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
+
+# Menampilkan logo Universitas Cakrawala dan judul program studi di sidebar
+import base64
+
+# Encode logo menjadi base64 (jalankan hanya sekali)
+with open("logo-cakrawala-black.png", "rb") as image_file:
+    encoded = base64.b64encode(image_file.read()).decode()
+
+# Tampilkan di sidebar
+st.sidebar.markdown(
+    f"""
+    <div style='text-align: center;'>
+        <img src="data:image/png;base64,{encoded}" width="120">
+        <h4 style='margin-top: 0;'>📘 Data Science Study Program</h4>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # ====== SIDEBAR MENU ======
 menu = st.sidebar.selectbox("📂 Pilih Menu", ["Kehadiran Mahasiswa", "Nilai UTS Mahasiswa"])
 
@@ -807,3 +827,16 @@ elif menu == "Nilai UTS Mahasiswa":
 
     with tab5:
         statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
+# ====== FOOTER ======
+st.markdown("---", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style='text-align: center; color: grey; font-size: 14px;'>
+        Developed by <b>Adam Puspabhuana, M.Kom</b> (Data Science) &nbsp; | &nbsp; © 2025<br>
+        <a href="https://www.linkedin.com/in/adam-puspabhuana-75a94a10/" target="_blank" style='text-decoration: none; color: #0e76a8;'>
+            🔗 LinkedIn
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
