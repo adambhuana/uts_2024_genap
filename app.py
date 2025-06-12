@@ -4,7 +4,7 @@ import plotly.express as px
 import streamlit as st
 import seaborn as sns
 import matplotlib as plt
-
+import csv
 def login():
     if "logged_in" not in st.session_state:
         st.session_state.logged_in = False
@@ -15,9 +15,13 @@ def login():
         password = st.text_input("Password", type="password")
 
         if st.button("Login"):
-            if username == "adam" and password == "adam":
-                st.success("✅ Login berhasil!")
+            with open("login_users.txt", "r") as f:
+                users = list(csv.reader(f))
+                user_dict = {u[0]: u[1] for u in users}
+
+            if username in user_dict and password == user_dict[username]:
                 st.session_state.logged_in = True
+                st.success("✅ Login berhasil!")
                 st.rerun()
             else:
                 st.error("❌ Username atau password salah.")
