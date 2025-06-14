@@ -34,8 +34,8 @@ if st.sidebar.button("🔓 Logout"):
     st.rerun()
 
 df_dosen = pd.read_csv("soal_dosen.csv")
-df_reguler = pd.read_csv("uts_reguler_sains_data.csv")
-df_pro = pd.read_csv("uts_pro_sains_data.csv")
+df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_pro = pd.read_csv("uts_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_abs_com_pro_reg = pd.read_csv("absensi_com_pro_reguler_sains_data.csv")
 df_abs_com_pro_pros = pd.read_csv("absensi_com_pro_pros_sains_data.csv")
 df_abs_ds_reg = pd.read_csv("absensi_ds_reguler_sains_data.csv")
@@ -1211,30 +1211,148 @@ def statistik_soal_dosen(df_dosen):
 
     st.dataframe(heatmap_data.style.background_gradient(cmap='YlGnBu'), use_container_width=True)
 
-def statistik_dataset_nilai(df_nilai, nama_dataset="Dataset Nilai"):
-    st.header(f"📖 Statistik {nama_dataset}")
+def statistik_dataset_nilai_reg(df_reguler):
+    st.header(f"📖 Statistik UTS Kelas Reguler")
 
-    df_clean = df_nilai.drop(columns=["NIM", "Nama_Mahasiswa"])
-    
-    st.subheader("📌 Statistik Deskriptif")
-    st.dataframe(df_clean.describe().T, use_container_width=True)
+    # Ubah ke format long
+    df_long = df_reguler.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
 
-    st.subheader("📊 Korelasi Antar Mata Kuliah")
-    fig_corr = px.imshow(df_clean.corr(), 
-                         text_auto=True, 
-                         color_continuous_scale='RdBu_r',
-                         title="Heatmap Korelasi")
-    st.plotly_chart(fig_corr, use_container_width=True)
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
 
-    st.subheader("📉 Boxplot Nilai per Mata Kuliah")
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_reguler')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Reguler)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Reguler)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+
+     # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
     fig_box = px.box(
-        df_clean.melt(var_name="Mata Kuliah", value_name="Nilai"),
-        x="Mata Kuliah",
-        y="Nilai",
-        title="Distribusi Nilai per Mata Kuliah",
-        color="Mata Kuliah"
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
     )
     st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
+def statistik_dataset_nilai_pro(df_pro):
+    st.header(f"📖 Statistik UTS Kelas Reguler")
+
+    # Ubah ke format long
+    df_long = df_pro.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
+
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
+
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_pro')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Reguler)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Reguler)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+    # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
+    fig_box = px.box(
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
 def statistik_nilai_kurang_60(df_reguler, df_pro):
     st.header("❌ Statistik Mahasiswa dengan Nilai < 60")
 
@@ -1274,6 +1392,88 @@ def statistik_nilai_kurang_60(df_reguler, df_pro):
 
     st.subheader("📋 Tabel Detail Mahasiswa dengan Nilai < 60")
     st.dataframe(summary, use_container_width=True)
+
+def statistik_nilai_lebihsama_60(df_reguler, df_pro):
+    st.header("❌ Statistik Mahasiswa dengan Nilai >= 60")
+
+    # Gabungkan kedua dataset untuk keperluan pelaporan
+    df_reguler["Kelas"] = "Reguler"
+    df_pro["Kelas"] = "Pro dan Aksel"
+    df_all = pd.concat([df_reguler, df_pro], ignore_index=True)
+
+    # Ubah ke format long (melt)
+    df_long = df_all.melt(id_vars=["NIM", "Nama_Mahasiswa", "Kelas"],
+                          var_name="Mata Kuliah",
+                          value_name="Nilai")
+
+    # Filter nilai di bawah 60
+    df_lebihsama_60 = df_long[df_long["Nilai"] >= 60]
+
+    # Hitung jumlah mahasiswa per mata kuliah per kelas
+    summary = df_lebihsama_60.groupby(["Kelas", "Mata Kuliah"]).agg(
+        Jumlah_Mahasiswa=("Nama_Mahasiswa", "count"),
+        Daftar_Mahasiswa=("Nama_Mahasiswa", lambda x: ", ".join(x))
+    ).reset_index()
+
+    st.subheader("📊 Grafik Jumlah Mahasiswa dengan Nilai >= 60")
+    fig = px.bar(
+        summary,
+        x="Mata Kuliah",
+        y="Jumlah_Mahasiswa",
+        color="Kelas",
+        barmode="group",
+        text="Jumlah_Mahasiswa",
+        title="Jumlah Mahasiswa dengan Nilai < 60 per Mata Kuliah per Kelas",
+        labels={"Jumlah_Mahasiswa": "Jumlah Mahasiswa"}
+    )
+    fig.update_traces(textposition="outside")
+    fig.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📋 Tabel Detail Mahasiswa dengan Nilai >= 60")
+    st.dataframe(summary, use_container_width=True)
+
+def statistik_nilai_samadengan_0(df_reguler, df_pro):
+    st.header("❌ Statistik Mahasiswa dengan Nilai = 0")
+
+    # Gabungkan kedua dataset untuk keperluan pelaporan
+    df_reguler["Kelas"] = "Reguler"
+    df_pro["Kelas"] = "Pro dan Aksel"
+    df_all = pd.concat([df_reguler, df_pro], ignore_index=True)
+
+    # Ubah ke format long (melt)
+    df_long = df_all.melt(id_vars=["NIM", "Nama_Mahasiswa", "Kelas"],
+                          var_name="Mata Kuliah",
+                          value_name="Nilai")
+
+    # Filter nilai di bawah 60
+    df_sd_0 = df_long[df_long["Nilai"] == 0]
+
+    # Hitung jumlah mahasiswa per mata kuliah per kelas
+    summary = df_sd_0.groupby(["Kelas", "Mata Kuliah"]).agg(
+        Jumlah_Mahasiswa=("Nama_Mahasiswa", "count"),
+        Daftar_Mahasiswa=("Nama_Mahasiswa", lambda x: ", ".join(x))
+    ).reset_index()
+
+    st.subheader("📊 Grafik Jumlah Mahasiswa dengan Nilai = 0")
+    fig = px.bar(
+        summary,
+        x="Mata Kuliah",
+        y="Jumlah_Mahasiswa",
+        color="Kelas",
+        barmode="group",
+        text="Jumlah_Mahasiswa",
+        title="Jumlah Mahasiswa dengan Nilai = 0 per Mata Kuliah per Kelas",
+        labels={"Jumlah_Mahasiswa": "Jumlah Mahasiswa"}
+    )
+    fig.update_traces(textposition="outside")
+    fig.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📋 Tabel Detail Mahasiswa dengan Nilai = 0")
+    st.dataframe(summary, use_container_width=True)
+
+
 def statistik_per_mahasiswa_by_kelas(df_reguler, df_pro):
     st.header("🎓 Statistik Nilai Mahasiswa Berdasarkan Kelas")
 
@@ -1517,11 +1717,13 @@ elif menu == "Kehadiran Mahasiswa":
 
 # ====== NILAI UTS ======
 elif menu == "Nilai UTS Mahasiswa":
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "Soal Dosen", 
         "Nilai Reguler", 
         "Nilai Pro/Aksel", 
         "Mahasiswa < 60",
+        "Mahasiswa = 0",
+        "Mahasiswa > 60",
         "Statistik per Mahasiswa"
     ])
 
@@ -1529,15 +1731,21 @@ elif menu == "Nilai UTS Mahasiswa":
         statistik_soal_dosen(df_dosen)
 
     with tab2:
-        statistik_dataset_nilai(df_reguler, nama_dataset="Kelas Reguler")
+        statistik_dataset_nilai_reg(df_reguler)
 
     with tab3:
-        statistik_dataset_nilai(df_pro, nama_dataset="Kelas Pro dan Aksel")
-
+        statistik_dataset_nilai_pro(df_pro)
+        
     with tab4:
         statistik_nilai_kurang_60(df_reguler, df_pro)
 
     with tab5:
+        statistik_nilai_samadengan_0(df_reguler, df_pro)
+
+    with tab6:
+        statistik_nilai_lebihsama_60(df_reguler, df_pro)
+
+    with tab7:
         statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
 
 elif menu == "Sentimen FeedBack Mahasiswa":
