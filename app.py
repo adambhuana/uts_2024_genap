@@ -44,6 +44,7 @@ if st.sidebar.button("🔓 Logout"):
 senti = sentistrength(config)
 # File CSV
 DATA_PATH_DBS = "komentar_dbs_reguler.csv"
+DATA_PATH_CP = "komentar_cp_reguler.csv"
 
 df_dosen = pd.read_csv("soal_dosen.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
@@ -1668,6 +1669,63 @@ def tampilkan_sentimen_dbs_pertemuan(DATA_PATH_DBS, pertemuan=1, senti=None):
     bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
     st.bar_chart(bar_df)
 
+def tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=1, senti=None):
+    """
+    Analisis Sentimen Komentar per Pertemuan
+    """
+    st.header(f"📝 Analisis Sentimen Komentar Pertemuan {pertemuan}")
+
+    # Membaca CSV
+    df = pd.read_csv(DATA_PATH_CP, dtype=str)
+
+    # Mengambil kolom sesuai pertemuan
+    col_name = f"Pertemuan_{pertemuan}"  # pertemuan 1 -> Pertemuan_1
+    
+    if col_name not in df.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+    
+    komentar = df[col_name].dropna().astype(str).tolist()
+
+    # Analisis Sentimen
+    hasil = [senti.main(text) for text in komentar]
+    df[f"Sentimen_Pertemuan_{pertemuan}"] = hasil
+
+    # Tampilkan hasil
+    st.subheader("📄 Tabel Hasil Sentimen")
+    st.dataframe(
+        pd.DataFrame({"Komentar": komentar, "Sentimen": hasil}),
+        use_container_width=True
+    )
+
+    # Hitung distribusi
+    counter = Counter(hasil)
+    labels = ["Positif", "Negatif", "Netral"]
+    values = [counter.get(l, 0) for l in labels]
+
+    # Pie Chart
+    st.subheader("📊 Pie Chart Distribusi Sentimen")
+    fig1, ax1 = plt.subplots(figsize=(6, 6))
+    explode = [0.05, 0.05, 0.05]
+    colors = ["#2ecc71", "#e74c3c", "#f1c40f"]
+
+    ax1.pie(values,
+            labels=labels,
+            autopct='%1.1f%%',
+            startangle=140,
+            explode=explode,
+            colors=colors,
+            textprops={'fontsize': 12})
+    ax1.axis('equal')
+
+    st.pyplot(fig1)
+
+
+    # Bar Chart
+    st.subheader("📊 Bar Chart Distribusi Sentimen")
+    bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
+    st.bar_chart(bar_df)
+
 
 def tampilkan_mahasiswa_dbs_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Reguler'):
     st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
@@ -1689,12 +1747,33 @@ def tampilkan_mahasiswa_dbs_dengan_komentar(dataframe, pertemuan=1, nama_dataset
             use_container_width=True
         )
 
+def tampilkan_mahasiswa_cp_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Reguler'):
+    st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
+
+    col_name = f"Pertemuan_{pertemuan}"
+
+    if col_name not in dataframe.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+
+    df_filtered = dataframe[dataframe[col_name] != '-']
+
+    if df_filtered.empty:
+        st.info(f"ℹ Tidak ada siswa yang memberikan komentar di {col_name}.")
+    else:
+        st.success(f"Ada {len(df_filtered)} siswa yang memberikan komentar di {col_name}.")
+        st.dataframe(
+            df_filtered[["NIM", "Nama_Mahasiswa", col_name]],
+            use_container_width=True
+        )
+
+
 def sentimen_dbs_reguler(DATA_PATH_DBS):
     st.title("📘 Analisis Sentimen Komentar Database ")
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen per Pertemuan"):
+    if st.sidebar.checkbox("Analisis Sentimen Database Sytems per Pertemuan"):
 
         df = pd.read_csv(DATA_PATH_DBS, dtype=str)
 
@@ -1705,6 +1784,21 @@ def sentimen_dbs_reguler(DATA_PATH_DBS):
             tampilkan_sentimen_dbs_pertemuan(DATA_PATH_DBS, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_dbs_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
+def sentimen_cp_reguler(DATA_PATH_CP):
+    st.title("📘 Analisis Sentimen Komentar Communication Protocols ")
+    #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
+
+    # Analisis Sentimen per Pertemuan
+    if st.sidebar.checkbox("Analisis Sentimen Communication Protocols per Pertemuan"):
+
+        df = pd.read_csv(DATA_PATH_CP, dtype=str)
+
+        if len(df.columns) < 5:
+            st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
+        else:
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan')
+            tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=pilihan, senti=senti)
+            tampilkan_mahasiswa_cp_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
 st.markdown("<h1 style='text-align: center; color: #4A6D8C;'>🎓 Analisa Nilai Program Studi Sains Data</h1>", unsafe_allow_html=True)
 st.markdown("---")
@@ -1877,7 +1971,7 @@ elif menu == "Sentimen FeedBack Mahasiswa":
         ])
 
         with tab1:
-            analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg)
+            sentimen_cp_reguler(DATA_PATH_CP)
 
         with tab2:
             analisa_statistik_kehadiran_wcd_reg(df_abs_wcd_reg)
