@@ -1591,6 +1591,25 @@ def tampilkan_statistik_mahasiswa(df_mhs_pro):
     # Statistik deskriptif (jika ada kolom numerik)
     #st.subheader("📈 Statistik Deskriptif")
     #st.write(df_mhs_pro.describe(include='all'))
+    # Tabel dan Visualisasi per Kelas dan Tahun Angkatan
+    st.subheader("📊 Distribusi Mahasiswa per Kelas dan Tahun Angkatan")
+
+    # Menghitung jumlah siswa per Kelas dan Tahun
+    df_count = df_mhs_pro.groupby(['Tahun', 'Kelas']).size().reset_index(name='Jumlah')
+    st.dataframe(df_count, use_container_width=True)
+
+    # Plot Bar per Kelas dan Tahun
+    fig_count = px.bar(
+        df_count,
+        x='Tahun',
+        y='Jumlah',
+        color='Kelas',
+        barmode='group',
+        text='Jumlah',
+        title='Jumlah Mahasiswa per Kelas dan Tahun'
+    )
+    fig_count.update_traces(textposition='outside')
+    st.plotly_chart(fig_count, use_container_width=True)
 
     # Visualisasi jumlah mahasiswa per angkatan
     if 'Angkatan' in df_mhs_pro.columns:
