@@ -1792,14 +1792,14 @@ def sentimen_dbs_reguler(DATA_PATH_DBS):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Database Sytems per Pertemuan"):
+    if st.sidebar.checkbox("Analisis Sentimen Database Sytems per Pertemuan",key='dbs_sentimen'):
 
         df = pd.read_csv(DATA_PATH_DBS, dtype=str)
 
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_dbs')
             tampilkan_sentimen_dbs_pertemuan(DATA_PATH_DBS, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_dbs_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -1808,14 +1808,14 @@ def sentimen_cp_reguler(DATA_PATH_CP):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Communication Protocols per Pertemuan"):
+    if st.sidebar.checkbox("Analisis Sentimen Communication Protocols per Pertemuan",key='cp_sentimen'):
 
         df = pd.read_csv(DATA_PATH_CP, dtype=str)
 
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_cp')
             tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_cp_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
