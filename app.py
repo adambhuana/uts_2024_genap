@@ -33,6 +33,15 @@ def login():
                 st.rerun()
             else:
                 st.error("❌ Username atau password salah.")
+                # Tambahan footer
+        st.markdown("""
+        <div style='text-align: center; color: grey; font-size: 14px; margin-top: 20px;'>
+            Developed by <b>Adam Puspabhuana, M.Kom</b> (Data Scientist) &nbsp; | &nbsp; © 2025<br>
+            <a href='https://www.linkedin.com/in/adam-puspabhuana-75a94a10/' target='_blank' style='text-decoration: none; color: #0e76a8;'>
+                🔗 LinkedIn
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
 
         st.stop()
 login()
