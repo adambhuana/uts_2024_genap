@@ -47,6 +47,8 @@ DATA_PATH_DBS = "komentar_dbs_reguler.csv"
 DATA_PATH_CP = "komentar_cp_reguler.csv"
 
 df_dosen = pd.read_csv("soal_dosen.csv")
+df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
+df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_pro = pd.read_csv("uts_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_abs_com_pro_reg = pd.read_csv("absensi_com_pro_reguler_sains_data.csv")
@@ -1803,6 +1805,89 @@ def sentimen_dbs_reguler(DATA_PATH_DBS):
             tampilkan_sentimen_dbs_pertemuan(DATA_PATH_DBS, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_dbs_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
+def tampilkan_kehadiran_dosen(df_abs_dosen ):
+    if df_abs_dosen .empty:
+        st.error("Data kehadiran dosen kosong.")
+        return
+
+    # Tabel Kehadiran Dosen
+    st.subheader("📋 Tabel Kehadiran Dosen")
+    st.dataframe(df_abs_dosen, use_container_width=True)
+
+    # Statistik Kehadiran per Dosen
+    st.subheader("📊 Statistik Kehadiran per Dosen")
+    # Menghitung total kehadiran per dosen
+    df_count = df_abs_dosen .groupby("Mata_kuliah")["Hadir"].sum().reset_index()
+    df_count.columns = ["Mata_kuliah", "Jumlah Kehadiran"]
+    st.dataframe(df_count, use_container_width=True)
+
+    st.write("""
+    🟣 Penjelasan:
+    - Tabel di atas menampilkan daftar dosen beserta kehadirannya.
+    - Statistik memberikan informasi mengenai total kehadiran masing-masing dosen.
+    """)
+
+    # Visualisasi
+    st.subheader("📉 Visualisasi Kehadiran per Dosen")
+    fig = px.bar(
+        df_count,
+        x='Mata_kuliah',
+        y='Jumlah Kehadiran',
+        text='Jumlah Kehadiran',
+        color='Jumlah Kehadiran',
+        color_continuous_scale='Blues'
+    )
+    fig.update_traces(textposition='outside')
+    st.plotly_chart(fig, use_container_width=True)
+
+def tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro):
+ 
+    if df_abs_dosen_pro.empty:
+        st.error("Data kehadiran dosen (Pro) kosong.")
+        return
+
+    # Tabel Kehadiran Dosen
+    st.subheader("📋 Tabel Kehadiran Dosen (Pro)",)
+    st.dataframe(df_abs_dosen_pro, use_container_width=True)
+
+    # Statistik Kehadiran per Mata Kuliah
+    st.subheader("📊 Statistik Kehadiran per Mata Kuliah (Pro)",)
+    df_count = df_abs_dosen_pro.groupby("Mata_kuliah")["Hadir"].sum().reset_index()
+    df_count.columns = ["Mata_kuliah", "Jumlah Kehadiran"]
+    st.dataframe(df_count, use_container_width=True)
+
+    # Visualisasi per Mata Kuliah
+    st.subheader("📉 Visualisasi Kehadiran per Mata Kuliah (Pro)",)
+    fig = px.bar(
+        df_count,
+        x='Mata_kuliah',
+        y='Jumlah Kehadiran',
+        text='Jumlah Kehadiran',
+        color='Jumlah Kehadiran',
+        color_continuous_scale='Blues'
+    )
+    fig.update_traces(textposition='outside')
+    st.plotly_chart(fig, use_container_width=True)
+
+
+    # Visualisasi per Mata Kuliah dan Kelas
+    st.subheader("📉 Visualisasi Kehadiran per Mata Kuliah dan Kelas (Pro)",)
+    df_count_kelas = df_abs_dosen_pro.groupby(['Mata_kuliah', 'Kelas'])["Hadir"].sum().reset_index()
+    df_count_kelas.columns = ['Mata_kuliah', 'Kelas', 'Jumlah_Kehadiran']
+
+    fig_kelas = px.bar(
+        df_count_kelas,
+        x='Mata_kuliah',
+        y='Jumlah_Kehadiran',
+        color='Kelas',
+        barmode='group',
+        text='Jumlah_Kehadiran',
+        title='Jumlah Kehadiran per Mata Kuliah dan Kelas'
+    )
+    fig_kelas.update_traces(textposition='outside')
+    st.plotly_chart(fig_kelas, use_container_width=True)
+
+
 def sentimen_cp_reguler(DATA_PATH_CP):
     st.title("📘 Analisis Sentimen Komentar Communication Protocols ")
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
@@ -1842,7 +1927,7 @@ st.sidebar.markdown(
 )
 
 # ====== SIDEBAR MENU ======
-menu = st.sidebar.selectbox("📂 Pilih Menu", ["Jumlah Mahasiswa","Kehadiran Mahasiswa", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
+menu = st.sidebar.selectbox("📂 Pilih Menu", ["Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
 
 # ====== Jumlah Seluruh Mahasiswa ======
 if menu == "Jumlah Mahasiswa":
@@ -1860,7 +1945,7 @@ if menu == "Jumlah Mahasiswa":
         st.info("📌 Visualisasi Total Mahasiswa untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
         tampilkan_statistik_mahasiswa(df_mhs_pro)
 
-# ====== KEHADIRAN ======
+# ====== KEHADIRAN Mahasiswa ======
 elif menu == "Kehadiran Mahasiswa":
     st.title("📅 Kehadiran Mahasiswa")
 
@@ -1936,6 +2021,22 @@ elif menu == "Kehadiran Mahasiswa":
 
         with tab7:
             analisa_statistik_kehadiran_dw_pros(df_abs_dw_pros)
+
+# ====== KEHADIRAN Dosen ======
+elif menu == "Kehadiran Dosen":
+    st.title("📅 Kehadiran Dosen")
+
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Dosen - Kelas Reguler")
+        st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Reguler.")
+        tampilkan_kehadiran_dosen(df_abs_dosen )
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
+        tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
 
 # ====== NILAI UTS ======
 elif menu == "Nilai UTS Mahasiswa":
