@@ -18,7 +18,7 @@ def login():
         st.session_state.logged_in = False
 
     if not st.session_state.logged_in:
-        st.title("🔐 Login Dosen Prodi Sains Data")
+        st.title("🔐 Login Dosen Prodi Sains Data Semester Genap 2024")
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
 
