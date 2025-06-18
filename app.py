@@ -54,6 +54,7 @@ senti = sentistrength(config)
 # File CSV
 DATA_PATH_DBS = "komentar_dbs_reguler.csv"
 DATA_PATH_CP = "komentar_cp_reguler.csv"
+DATA_PATH_CP_PRO = "komentar_cp_pros.csv"
 DATA_PATH_WCD = "komentar_wcd_reguler.csv"
 DATA_PATH_OOP = "komentar_oop_reguler.csv"
 DATA_PATH_DS = "komentar_ds_reguler.csv"
@@ -1761,6 +1762,64 @@ def tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=1, senti=None):
     bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
     st.bar_chart(bar_df)
 
+def tampilkan_sentimen_cp_pro_pertemuan(DATA_PATH_CP_PRO, pertemuan=1, senti=None):
+    """
+    Analisis Sentimen Komentar per Pertemuan
+    """
+    st.header(f"📝 Analisis Sentimen Komentar Pertemuan {pertemuan}")
+
+    # Membaca CSV
+    df = pd.read_csv(DATA_PATH_CP_PRO, dtype=str)
+
+    # Mengambil kolom sesuai pertemuan
+    col_name = f"Pertemuan_{pertemuan}"  # pertemuan 1 -> Pertemuan_1
+    
+    if col_name not in df.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+    
+    komentar = df[col_name].dropna().astype(str).tolist()
+
+    # Analisis Sentimen
+    hasil = [senti.main(text) for text in komentar]
+    df[f"Sentimen_Pertemuan_{pertemuan}"] = hasil
+
+    # Tampilkan hasil
+    st.subheader("📄 Tabel Hasil Sentimen")
+    st.dataframe(
+        pd.DataFrame({"Komentar": komentar, "Sentimen": hasil}),
+        use_container_width=True
+    )
+
+    # Hitung distribusi
+    counter = Counter(hasil)
+    labels = ["Positif", "Negatif", "Netral"]
+    values = [counter.get(l, 0) for l in labels]
+
+    # Pie Chart
+    st.subheader("📊 Pie Chart Distribusi Sentimen")
+    fig1, ax1 = plt.subplots(figsize=(6, 6))
+    explode = [0.05, 0.05, 0.05]
+    colors = ["#2ecc71", "#e74c3c", "#f1c40f"]
+
+    ax1.pie(values,
+            labels=labels,
+            autopct='%1.1f%%',
+            startangle=140,
+            explode=explode,
+            colors=colors,
+            textprops={'fontsize': 12})
+    ax1.axis('equal')
+
+    st.pyplot(fig1)
+
+
+    # Bar Chart
+    st.subheader("📊 Bar Chart Distribusi Sentimen")
+    bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
+    st.bar_chart(bar_df)
+
+
 def tampilkan_sentimen_wcd_pertemuan(DATA_PATH_WCD, pertemuan=1, senti=None):
     """
     Analisis Sentimen Komentar per Pertemuan
@@ -2088,6 +2147,27 @@ def tampilkan_mahasiswa_cp_dengan_komentar(dataframe, pertemuan=1, nama_dataset=
             use_container_width=True
         )
 
+def tampilkan_mahasiswa_cp_pro_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Pro dan Akses'):
+    st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
+
+    col_name = f"Pertemuan_{pertemuan}"
+
+    if col_name not in dataframe.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+
+    df_filtered = dataframe[dataframe[col_name] != '-']
+
+    if df_filtered.empty:
+        st.info(f"ℹ Tidak ada siswa yang memberikan komentar di {col_name}.")
+    else:
+        st.success(f"Ada {len(df_filtered)} siswa yang memberikan komentar di {col_name}.")
+        st.dataframe(
+            df_filtered[["NIM", "Nama_Mahasiswa", col_name]],
+            use_container_width=True
+        )
+
+
 def tampilkan_mahasiswa_wcd_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Reguler'):
     st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
 
@@ -2196,7 +2276,7 @@ def sentimen_dbs_reguler(DATA_PATH_DBS):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Database Sytems per Pertemuan",key='dbs_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Database Sytems per Pertemuan",key='dbs_sentimen'):
 
         df = pd.read_csv(DATA_PATH_DBS, dtype=str)
 
@@ -2295,7 +2375,7 @@ def sentimen_cp_reguler(DATA_PATH_CP):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Communication Protocols per Pertemuan",key='cp_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Communication Protocols per Pertemuan",key='cp_sentimen'):
 
         df = pd.read_csv(DATA_PATH_CP, dtype=str)
 
@@ -2306,12 +2386,28 @@ def sentimen_cp_reguler(DATA_PATH_CP):
             tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_cp_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
+def sentimen_cp_pros(DATA_PATH_CP_PRO):
+    st.title("📘 Analisis Sentimen Komentar Communication Protocols ")
+    #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
+
+    # Analisis Sentimen per Pertemuan
+    if st.sidebar.checkbox("[PRO AKSEL] Analisis Sentimen Communication Protocols per Pertemuan",key='cp_sentimen'):
+
+        df = pd.read_csv(DATA_PATH_CP_PRO, dtype=str)
+
+        if len(df.columns) < 5:
+            st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
+        else:
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_cp')
+            tampilkan_sentimen_cp_pro_pertemuan(DATA_PATH_CP_PRO, pertemuan=pilihan, senti=senti)
+            tampilkan_mahasiswa_cp_pro_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
+
 def sentimen_wcd_reguler(DATA_PATH_WCD):
     st.title("📘 Analisis Sentimen Komentar Web Client Development ")
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Web Client per Pertemuan",key='wcd_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Web Client per Pertemuan",key='wcd_sentimen'):
 
         df = pd.read_csv(DATA_PATH_WCD, dtype=str)
 
@@ -2328,7 +2424,7 @@ def sentimen_oop_reguler(DATA_PATH_OOP):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen OOP per Pertemuan",key='oop_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen OOP per Pertemuan",key='oop_sentimen'):
 
         df = pd.read_csv(DATA_PATH_OOP, dtype=str)
 
@@ -2344,7 +2440,7 @@ def sentimen_ds_reguler(DATA_PATH_DS):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Data Structures per Pertemuan",key='ds_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Data Structures per Pertemuan",key='ds_sentimen'):
 
         df = pd.read_csv(DATA_PATH_DS, dtype=str)
 
@@ -2360,7 +2456,7 @@ def sentimen_sta_reguler(DATA_PATH_STA):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Statistical Thinking per Pertemuan",key='sta_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Statistical Thinking per Pertemuan",key='sta_sentimen'):
 
         df = pd.read_csv(DATA_PATH_STA, dtype=str)
 
@@ -2376,7 +2472,7 @@ def sentimen_dw_reguler(DATA_PATH_DW):
     #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
 
     # Analisis Sentimen per Pertemuan
-    if st.sidebar.checkbox("Analisis Sentimen Data Wrangling per Pertemuan",key='dw_sentimen'):
+    if st.sidebar.checkbox("[REGULER] Analisis Sentimen Data Wrangling per Pertemuan",key='dw_sentimen'):
 
         df = pd.read_csv(DATA_PATH_DW, dtype=str)
 
@@ -2563,7 +2659,7 @@ elif menu == "Sentimen FeedBack Mahasiswa":
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
 
     if sub_kelas == "Kelas Reguler":
-        st.subheader("📘 Kehadiran - Kelas Reguler")
+        st.subheader("📘 FeedBack - Kelas Reguler")
 
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "Communication Protocols", 
@@ -2594,13 +2690,46 @@ elif menu == "Sentimen FeedBack Mahasiswa":
             sentimen_sta_reguler(DATA_PATH_STA)
 
         with tab7:
-            sentimen_dw_reguler(DATA_PATH_DW)
-                
-        
+            sentimen_dw_reguler(DATA_PATH_DW)              
 
     elif sub_kelas == "Kelas Pro dan Aksel":
-        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
-        st.info("📌 Visualisasi kehadiran untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        st.subheader("📗 FeedBack - Kelas Pro dan Aksel")
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Communication Protocols", 
+            "Web Client Development", 
+            "Object Oriented Programming",
+            "Data Structures", 
+            "Database Systems",
+            "Statistical Thinking",
+            "Data Wrangling"
+        ])
+
+        with tab1:
+            sentimen_cp_pros(DATA_PATH_CP_PRO)
+
+        with tab2:
+            print("test")
+            #sentimen_wcd_reguler(DATA_PATH_WCD)
+
+        with tab3:
+            print("test")
+            #sentimen_oop_reguler(DATA_PATH_OOP)
+
+        with tab4:
+            print("test")
+            #sentimen_ds_reguler(DATA_PATH_DS)
+
+        with tab5:
+            print("test")
+            #sentimen_dbs_reguler(DATA_PATH_DBS)
+        
+        with tab6:
+            print("test")
+            #sentimen_sta_reguler(DATA_PATH_STA)
+
+        with tab7:
+            print("test")
+            #sentimen_dw_reguler(DATA_PATH_DW)              
 
 
 # ====== FOOTER ======
