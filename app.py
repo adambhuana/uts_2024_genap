@@ -2532,6 +2532,13 @@ elif menu == "Kehadiran Mahasiswa":
 
     # Sub-menu kelas
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+    # Tambahkan informasi update terakhir
+    st.markdown(
+        "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
+        "Update Terakhir: <b>Kamis, 19 Juni 2025, Pukul 10:14 AM</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )
 
     if sub_kelas == "Kelas Reguler":
         st.subheader("📘 Kehadiran - Kelas Reguler")
