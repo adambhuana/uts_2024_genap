@@ -2535,7 +2535,7 @@ elif menu == "Kehadiran Mahasiswa":
     # Tambahkan informasi update terakhir
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Kamis, 19 Juni 2025, Pukul 10:14 AM</b>"
+        "Update Terakhir: <b>Sabtu, 21 Juni 2025, Pukul 07:30 PM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -2616,7 +2616,12 @@ elif menu == "Kehadiran Dosen":
 
     # Sub-menu kelas
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
-
+    st.markdown(
+        "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
+        "Update Terakhir: <b>Sabtu, 21 Juni 2025, Pukul 07:30 PM</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )
     if sub_kelas == "Kelas Reguler":
         st.subheader("📘 Dosen - Kelas Reguler")
         st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Reguler.")
