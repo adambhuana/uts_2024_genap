@@ -2283,7 +2283,7 @@ def sentimen_dbs_reguler(DATA_PATH_DBS):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_dbs')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], key='pilihan_pertemuan_dbs')
             tampilkan_sentimen_dbs_pertemuan(DATA_PATH_DBS, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_dbs_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2382,7 +2382,7 @@ def sentimen_cp_reguler(DATA_PATH_CP):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_cp')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_cp')
             tampilkan_sentimen_cp_pertemuan(DATA_PATH_CP, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_cp_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2414,7 +2414,7 @@ def sentimen_wcd_reguler(DATA_PATH_WCD):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_wcd')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_wcd')
             tampilkan_sentimen_wcd_pertemuan(DATA_PATH_WCD, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_wcd_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2431,7 +2431,7 @@ def sentimen_oop_reguler(DATA_PATH_OOP):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_oop')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_oop')
             tampilkan_sentimen_oop_pertemuan(DATA_PATH_OOP, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_oop_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2447,7 +2447,7 @@ def sentimen_ds_reguler(DATA_PATH_DS):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_ds')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_ds')
             tampilkan_sentimen_ds_pertemuan(DATA_PATH_DS, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_ds_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2463,7 +2463,7 @@ def sentimen_sta_reguler(DATA_PATH_STA):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_sta')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_sta')
             tampilkan_sentimen_sta_pertemuan(DATA_PATH_STA, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_sta_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2479,7 +2479,7 @@ def sentimen_dw_reguler(DATA_PATH_DW):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_dw')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_dw')
             tampilkan_sentimen_dw_pertemuan(DATA_PATH_DW, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_dw_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
