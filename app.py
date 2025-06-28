@@ -2854,26 +2854,25 @@ st.markdown(
 )
 
 
-# ===== EMBED CHATBOT (KANAN BAWAH) =====
 if st.session_state.get("logged_in", False):
     st.markdown("""
     <style>
-    #chatbot-frame {
+    #floating-button {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 360px;
-        height: 520px;
+        background-color: #4CAF50;
+        color: white;
         border: none;
-        border-radius: 12px;
-        box-shadow: 0px 0px 10px rgba(0,0,0,0.25);
+        padding: 14px 20px;
+        border-radius: 50px;
+        font-size: 16px;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        cursor: pointer;
         z-index: 9999;
     }
     </style>
-    <iframe 
-        id="chatbot-frame"
-        src="https://adambhuana.app.n8n.cloud/webhook/8d1e8904-f75e-493d-b7d1-071d26158c23/chat"
-        allow="clipboard-write; microphone"
-        title="AI Chat Assistant"
-    ></iframe>
+    <a href="https://adambhuana.app.n8n.cloud/webhook/8d1e8904-f75e-493d-b7d1-071d26158c23/chat" target="_blank">
+        <div id="floating-button">💬 Chatbot</div>
+    </a>
     """, unsafe_allow_html=True)
