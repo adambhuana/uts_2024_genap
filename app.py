@@ -56,6 +56,7 @@ DATA_PATH_DBS = "komentar_dbs_reguler.csv"
 DATA_PATH_CP = "komentar_cp_reguler.csv"
 DATA_PATH_CP_PRO = "komentar_cp_pros.csv"
 DATA_PATH_WCD = "komentar_wcd_reguler.csv"
+DATA_PATH_WCD_PRO = "komentar_wcd_pros.csv"
 DATA_PATH_OOP = "komentar_oop_reguler.csv"
 DATA_PATH_DS = "komentar_ds_reguler.csv"
 DATA_PATH_STA = "komentar_sta_reguler.csv"
@@ -1819,6 +1820,63 @@ def tampilkan_sentimen_cp_pro_pertemuan(DATA_PATH_CP_PRO, pertemuan=1, senti=Non
     bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
     st.bar_chart(bar_df)
 
+def tampilkan_sentimen_wcd_pro_pertemuan(DATA_PATH_WCD_PRO, pertemuan=1, senti=None):
+    """
+    Analisis Sentimen Komentar per Pertemuan
+    """
+    st.header(f"📝 Analisis Sentimen Komentar Pertemuan {pertemuan}")
+
+    # Membaca CSV
+    df = pd.read_csv(DATA_PATH_WCD_PRO, dtype=str)
+
+    # Mengambil kolom sesuai pertemuan
+    col_name = f"Pertemuan_{pertemuan}"  # pertemuan 1 -> Pertemuan_1
+    
+    if col_name not in df.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+    
+    komentar = df[col_name].dropna().astype(str).tolist()
+
+    # Analisis Sentimen
+    hasil = [senti.main(text) for text in komentar]
+    df[f"Sentimen_Pertemuan_{pertemuan}"] = hasil
+
+    # Tampilkan hasil
+    st.subheader("📄 Tabel Hasil Sentimen")
+    st.dataframe(
+        pd.DataFrame({"Komentar": komentar, "Sentimen": hasil}),
+        use_container_width=True
+    )
+
+    # Hitung distribusi
+    counter = Counter(hasil)
+    labels = ["Positif", "Negatif", "Netral"]
+    values = [counter.get(l, 0) for l in labels]
+
+    # Pie Chart
+    st.subheader("📊 Pie Chart Distribusi Sentimen")
+    fig1, ax1 = plt.subplots(figsize=(6, 6))
+    explode = [0.05, 0.05, 0.05]
+    colors = ["#2ecc71", "#e74c3c", "#f1c40f"]
+
+    ax1.pie(values,
+            labels=labels,
+            autopct='%1.1f%%',
+            startangle=140,
+            explode=explode,
+            colors=colors,
+            textprops={'fontsize': 12})
+    ax1.axis('equal')
+
+    st.pyplot(fig1)
+
+
+    # Bar Chart
+    st.subheader("📊 Bar Chart Distribusi Sentimen")
+    bar_df = pd.DataFrame({"Sentimen": labels, "Jumlah": values}).set_index("Sentimen")
+    st.bar_chart(bar_df)
+
 
 def tampilkan_sentimen_wcd_pertemuan(DATA_PATH_WCD, pertemuan=1, senti=None):
     """
@@ -2188,6 +2246,27 @@ def tampilkan_mahasiswa_wcd_dengan_komentar(dataframe, pertemuan=1, nama_dataset
             use_container_width=True
         )
 
+def tampilkan_mahasiswa_wcd_pro_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Reguler'):
+    st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
+
+    col_name = f"Pertemuan_{pertemuan}"
+
+    if col_name not in dataframe.columns:
+        st.error(f"Kolom {col_name} tidak ditemukan.")
+        return
+
+    df_filtered = dataframe[dataframe[col_name] != '-']
+
+    if df_filtered.empty:
+        st.info(f"ℹ Tidak ada siswa yang memberikan komentar di {col_name}.")
+    else:
+        st.success(f"Ada {len(df_filtered)} siswa yang memberikan komentar di {col_name}.")
+        st.dataframe(
+            df_filtered[["NIM", "Nama_Mahasiswa", col_name]],
+            use_container_width=True
+        )
+
+
 def tampilkan_mahasiswa_oop_dengan_komentar(dataframe, pertemuan=1, nama_dataset='Dataset Reguler'):
     st.header(f"📝 Daftar Mahasiswa yang Memberikan Komentar - {nama_dataset}")
 
@@ -2398,7 +2477,7 @@ def sentimen_cp_pros(DATA_PATH_CP_PRO):
         if len(df.columns) < 5:
             st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
         else:
-            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3], key='pilihan_pertemuan_cp')
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_cp')
             tampilkan_sentimen_cp_pro_pertemuan(DATA_PATH_CP_PRO, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_cp_pro_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
@@ -2417,6 +2496,22 @@ def sentimen_wcd_reguler(DATA_PATH_WCD):
             pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_wcd')
             tampilkan_sentimen_wcd_pertemuan(DATA_PATH_WCD, pertemuan=pilihan, senti=senti)
             tampilkan_mahasiswa_wcd_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
+
+def sentimen_wcd_pros(DATA_PATH_WCD_PRO):
+    st.title("📘 Analisis Sentimen Komentar Web Client Development ")
+    #st.markdown("Analisis otomatis sentimen pada komentar dari dataset **komentar_dbs_reguler.csv**.")
+
+    # Analisis Sentimen per Pertemuan
+    if st.sidebar.checkbox("[PRO AKSEL] Analisis Sentimen Web Client per Pertemuan",key='wcd_sentimen'):
+
+        df = pd.read_csv(DATA_PATH_WCD_PRO, dtype=str)
+
+        if len(df.columns) < 5:
+            st.error("❌ File CSV harus punya setidaknya 5 kolom (NIM, Nama, Pertemuan_1, Pertemuan_2, Pertemuan_3).")
+        else:
+            pilihan = st.selectbox("Pilih Pertemuan untuk Analisis Sentimen", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], key='pilihan_pertemuan_wcd')
+            tampilkan_sentimen_wcd_pro_pertemuan(DATA_PATH_WCD_PRO, pertemuan=pilihan, senti=senti)
+            tampilkan_mahasiswa_wcd_pro_dengan_komentar(df, pertemuan=pilihan, nama_dataset='Dataset Reguler')
 
 
 def sentimen_oop_reguler(DATA_PATH_OOP):
@@ -2720,8 +2815,8 @@ elif menu == "Sentimen FeedBack Mahasiswa":
             sentimen_cp_pros(DATA_PATH_CP_PRO)
 
         with tab2:
-            print("test")
-            #sentimen_wcd_reguler(DATA_PATH_WCD)
+            #print("test")
+            sentimen_wcd_pros(DATA_PATH_WCD_PRO)
 
         with tab3:
             print("test")
@@ -2757,3 +2852,28 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+
+# ===== EMBED CHATBOT (KANAN BAWAH) =====
+if st.session_state.get("logged_in", False):
+    st.markdown("""
+    <style>
+    #chatbot-frame {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 360px;
+        height: 520px;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.25);
+        z-index: 9999;
+    }
+    </style>
+    <iframe 
+        id="chatbot-frame"
+        src="https://adambhuana.app.n8n.cloud/webhook/8d1e8904-f75e-493d-b7d1-071d26158c23/chat"
+        allow="clipboard-write; microphone"
+        title="AI Chat Assistant"
+    ></iframe>
+    """, unsafe_allow_html=True)
