@@ -62,6 +62,7 @@ DATA_PATH_DS = "komentar_ds_reguler.csv"
 DATA_PATH_STA = "komentar_sta_reguler.csv"
 DATA_PATH_DW = "komentar_dw_reguler.csv"
 
+df_profil=pd.read_csv("profil_lulusan.csv")
 df_dosen = pd.read_csv("soal_dosen.csv")
 df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
 df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
@@ -89,6 +90,17 @@ df_mhs_pro = pd.read_csv("total_mhs_pro_sains_data.csv", dtype={'NIM': str, 'Tah
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+def tampilan_profil_lulusan(df_profil):
+    st.title("🎓 Profil Lulusan Prodi Sains Data")
+    st.markdown("Berikut adalah daftar profil lulusan yang disesuaikan dengan level KKNI:")
+    st.dataframe(df_profil, use_container_width=True)
+
+    st.markdown("---")
+    st.write("📌 **Sumber Acuan:**")
+    sumber_unik = df_profil['Sumber'].unique()
+    for sumber in sumber_unik:
+        st.info(f"- {sumber}")
 
 def analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg ):
     st.subheader("📊 Analisa Kehadiran: Communication Protocols")
@@ -2603,10 +2615,28 @@ st.sidebar.markdown(
 )
 
 # ====== SIDEBAR MENU ======
-menu = st.sidebar.selectbox("📂 Pilih Menu", ["Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
+menu = st.sidebar.selectbox("📂 Pilih Menu", ["Profil Lulusan","Pemetaan Profesi Tiap Semester","Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
+
+
+if menu=="Profil Lulusan":
+    st.title("📅 Profil Lulusan")
+    tampilan_profil_lulusan(df_profil)
+elif menu == "Pemetaan Profesi Tiap Semester":
+    st.title("📅 Pemetaan Profesi Tiap Semester")
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Semester", ["Semester 1", "Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"])
+
+    if sub_kelas == "Semester 1":
+        st.subheader("📘 Mahasiswa - Kelas Reguler")
+        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Reguler.")
+        statistik_visualisasi_mahasiswa_reguler(df_mhs_reg)
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        tampilkan_statistik_mahasiswa(df_mhs_pro)
 
 # ====== Jumlah Seluruh Mahasiswa ======
-if menu == "Jumlah Mahasiswa":
+elif menu == "Jumlah Mahasiswa":
     st.title("📅 Total Mahasiswa")
 
     # Sub-menu kelas
@@ -2630,7 +2660,7 @@ elif menu == "Kehadiran Mahasiswa":
     # Tambahkan informasi update terakhir
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Sabtu, 21 Juni 2025, Pukul 07:30 PM</b>"
+        "Update Terakhir: <b>Selasa, 02 Juli 2025, Pukul 11:09 AM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -2713,7 +2743,7 @@ elif menu == "Kehadiran Dosen":
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Sabtu, 21 Juni 2025, Pukul 07:30 PM</b>"
+        "Update Terakhir: <b>Selasa, 02 Juli 2025, Pukul 11:09 AM</b>"
         "</div>",
         unsafe_allow_html=True
     )
