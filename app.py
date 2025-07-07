@@ -64,6 +64,7 @@ DATA_PATH_DW = "komentar_dw_reguler.csv"
 
 df_profil=pd.read_csv("profil_lulusan.csv")
 df_dosen = pd.read_csv("soal_dosen.csv")
+df_dosen_uas = pd.read_csv("soal_dosen_uas.csv")
 df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
 df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
@@ -1254,6 +1255,32 @@ def statistik_soal_dosen(df_dosen):
     heatmap_data = pivot.pivot(index="Nama Dosen", columns="Level Soal", values="Jumlah").fillna(0)
 
     st.dataframe(heatmap_data.style.background_gradient(cmap='YlGnBu'), use_container_width=True)
+
+def statistik_soal_dosen_uas(df_dosen_uas):
+    st.header("📘 Statistik Dataset Soal Dosen")
+
+    st.subheader("📌 Jumlah Level Soal per Dosen")
+    df_dosen["Level Soal"] = df_dosen["Level Soal"].astype(str).str.split(",")
+    df_exploded = df_dosen.explode("Level Soal")
+    df_exploded["Level Soal"] = df_exploded["Level Soal"].str.strip()
+
+    level_counts = df_exploded["Level Soal"].value_counts().sort_index()
+    fig = px.bar(
+        x=level_counts.index,
+        y=level_counts.values,
+        labels={"x": "Level Kognitif", "y": "Jumlah"},
+        title="Distribusi Level Kognitif (C1–C6)",
+        color=level_counts.values,
+        color_continuous_scale="Tealgrn"
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("📊 Heatmap Jumlah Soal per Dosen dan Level")
+    pivot = df_exploded.groupby(["Nama Dosen", "Level Soal"]).size().reset_index(name="Jumlah")
+    heatmap_data = pivot.pivot(index="Nama Dosen", columns="Level Soal", values="Jumlah").fillna(0)
+
+    st.dataframe(heatmap_data.style.background_gradient(cmap='YlGnBu'), use_container_width=True)
+
 
 def statistik_dataset_nilai_reg(df_reguler):
     st.header(f"📖 Statistik UTS Kelas Reguler")
@@ -2615,7 +2642,7 @@ st.sidebar.markdown(
 )
 
 # ====== SIDEBAR MENU ======
-menu = st.sidebar.selectbox("📂 Pilih Menu", ["Profil Lulusan","Pemetaan Profesi Tiap Semester","Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen", "Nilai UTS Mahasiswa", "Sentimen FeedBack Mahasiswa"])
+menu = st.sidebar.selectbox("📂 Pilih Menu", ["Profil Lulusan","Pemetaan Profesi Tiap Semester","Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen","Nilai Tugas dan Kuis", "Nilai UTS Mahasiswa", "Nilai UAS Mahasiswa","Nilai Akhir","Sentimen FeedBack Mahasiswa"])
 
 
 if menu=="Profil Lulusan":
@@ -2743,7 +2770,7 @@ elif menu == "Kehadiran Dosen":
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Selasa, 02 Juli 2025, Pukul 11:09 AM</b>"
+        "Update Terakhir: <b>Senin, 07 Juli 2025, Pukul 03:13 PM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -2755,6 +2782,9 @@ elif menu == "Kehadiran Dosen":
         st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
         st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
         tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
+
+elif menu == "Nilai Tugas dan Kuis":
+    st.title("📅 Nilai Tugas dan Kuis")
 
 # ====== NILAI UTS ======
 elif menu == "Nilai UTS Mahasiswa":
@@ -2788,6 +2818,40 @@ elif menu == "Nilai UTS Mahasiswa":
 
     with tab7:
         statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
+elif menu == "Nilai UAS Mahasiswa":
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "Soal Dosen", 
+        "Nilai Reguler", 
+        "Nilai Pro/Aksel", 
+        "Mahasiswa < 60",
+        "Mahasiswa = 0",
+        "Mahasiswa > 60",
+        "Statistik per Mahasiswa"
+    ])
+
+    with tab1:
+        statistik_soal_dosen_uas(df_dosen_uas)
+
+    with tab2:
+        statistik_dataset_nilai_reg(df_reguler)
+
+    with tab3:
+        statistik_dataset_nilai_pro(df_pro)
+        
+    with tab4:
+        statistik_nilai_kurang_60(df_reguler, df_pro)
+
+    with tab5:
+        statistik_nilai_samadengan_0(df_reguler, df_pro)
+
+    with tab6:
+        statistik_nilai_lebihsama_60(df_reguler, df_pro)
+
+    with tab7:
+        statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
+
+elif menu == "Nilai Akhir":
+    st.title("📅 Nilai Akhir")
 
 elif menu == "Sentimen FeedBack Mahasiswa":
     st.title("📅 Sentimen FeedBack Mahasiswa")
