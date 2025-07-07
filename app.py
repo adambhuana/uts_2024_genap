@@ -1260,8 +1260,8 @@ def statistik_soal_dosen_uas(df_dosen_uas):
     st.header("📘 Statistik Dataset Soal Dosen")
 
     st.subheader("📌 Jumlah Level Soal per Dosen")
-    df_dosen["Level Soal"] = df_dosen["Level Soal"].astype(str).str.split(",")
-    df_exploded = df_dosen.explode("Level Soal")
+    df_dosen_uas["Level Soal"] = df_dosen_uas["Level Soal"].astype(str).str.split(",")
+    df_exploded = df_dosen_uas.explode("Level Soal")
     df_exploded["Level Soal"] = df_exploded["Level Soal"].str.strip()
 
     level_counts = df_exploded["Level Soal"].value_counts().sort_index()
