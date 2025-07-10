@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Student Assessment Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .program-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .program-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .program-btn.active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .program-btn.ist { background: #3498db; color: white; }
+        .program-btn.ds { background: #e74c3c; color: white; }
+        .program-btn.cs { background: #2ecc71; color: white; }
+        .program-btn.db { background: #f39c12; color: white; }
+        .program-btn.feb { background: #9b59b6; color: white; }
+
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .analytics-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .industry-demands {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .demands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .demand-category {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .demand-category:hover {
+            transform: translateX(5px);
+        }
+
+        .demand-category h4 {
+            color: #3498db;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .skill-list {
+            list-style: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .skill-list li:before {
+            content: "✓ ";
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .progress-chart {
+            height: 220px;
+            display: flex;
+            align-items: end;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.8s ease;
+            cursor: pointer;
+            min-height: 20px;
+        }
+
+        .progress-bar:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .progress-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .progress-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .competency-radar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .competency-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .competency-item.technical { border-left-color: #3498db; }
+        .competency-item.business { border-left-color: #2ecc71; }
+        .competency-item.soft { border-left-color: #9b59b6; }
+        .competency-item.tools { border-left-color: #f39c12; }
+        .competency-item.problem { border-left-color: #e74c3c; }
+        .competency-item.innovation { border-left-color: #1abc9c; }
+
+        .competency-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .competency-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .competency-score {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 0.9em;
+        }
+
+        .competency-bar {
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .competency-progress {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .competency-progress.technical { background: linear-gradient(90deg, #3498db, #5dade2); }
+        .competency-progress.business { background: linear-gradient(90deg, #2ecc71, #58d68d); }
+        .competency-progress.soft { background: linear-gradient(90deg, #9b59b6, #bb8fce); }
+        .competency-progress.tools { background: linear-gradient(90deg, #f39c12, #f8c471); }
+        .competency-progress.problem { background: linear-gradient(90deg, #e74c3c, #ec7063); }
+        .competency-progress.innovation { background: linear-gradient(90deg, #1abc9c, #48c9b0); }
+
+        .semester-timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 20px 0;
+            scroll-snap-type: x mandatory;
+        }
+
+        .semester-card {
+            min-width: 320px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-top: 4px solid #3498db;
+            scroll-snap-align: start;
+            transition: transform 0.3s ease;
+        }
+
+        .semester-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .semester-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .semester-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .readiness-percentage {
+            font-size: 1.1em;
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .readiness-level {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .skills-section {
+            margin: 15px 0;
+        }
+
+        .detailed-assessment {
+            margin-top: 15px;
+        }
+
+        .assessment-category {
+            margin-bottom: 15px;
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .assessment-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .assessment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            padding: 3px 0;
+        }
+
+        .item-name {
+            color: #34495e;
+        }
+
+        .item-score {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .score-excellent { background: #d5f4e6; color: #27ae60; }
+        .score-good { background: #ffeaa7; color: #f39c12; }
+        .score-fair { background: #fab1a0; color: #e17055; }
+        .score-poor { background: #ff7675; color: white; }
+
+        .roles-section {
+            margin-top: 15px;
+        }
+
+        .role-card {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .role-card:hover {
+            transform: translateX(3px);
+        }
+
+        .role-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .role-requirements {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        .readiness-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .ready { background: #d5f4e6; color: #27ae60; }
+        .almost-ready { background: #ffeaa7; color: #f39c12; }
+        .developing { background: #fab1a0; color: #e17055; }
+
+        .gap-analysis {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .gap-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .gap-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .gap-item {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .market-alignment {
+            background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .alignment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .alignment-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .alignment-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .alignment-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .certification-readiness {
+            margin-top: 15px;
+        }
+
+        .cert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .cert-name {
+            font-size: 0.85em;
+            color: #2c3e50;
+        }
+
+        .cert-readiness {
+            font-size: 0.8em;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .competency-radar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .program-selector {
+                justify-content: center;
+            }
+
+            .semester-timeline {
+                flex-direction: column;
+            }
+
+            .semester-card {
+                min-width: auto;
+            }
+
+            .assessment-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Comprehensive Student Assessment Dashboard</h1>
+            <p>Deep Analysis: Student Competency Development & Industry Readiness Assessment</p>
+        </div>
+
+        <div class="controls">
+            <div>
+                <strong>Select Program for Detailed Analysis:</strong>
+            </div>
+            <div class="program-selector">
+                <button class="program-btn ist active" data-program="ist">Information System & Technology</button>
+                <button class="program-btn ds" data-program="ds">Data Science</button>
+                <button class="program-btn cs" data-program="cs">Computer Science</button>
+                <button class="program-btn db" data-program="db">Digital Business</button>
+                <button class="program-btn feb" data-program="feb">Financial Economy & Banking</button>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Industry Demands Section -->
+            <div class="industry-demands">
+                <h2>🏭 Industry Technology Demands 2025</h2>
+                <p>Critical skills and technologies required by industry for <span id="currentProgramTitle">Information System & Technology</span> graduates</p>
+                <div class="demands-grid" id="industryDemands">
+                    <!-- Content will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Market Alignment Overview -->
+            <div class="market-alignment">
+                <h2>📊 Market Alignment Analysis</h2>
+                <div class="alignment-grid" id="marketAlignment">
+                    <!-- Content will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Main Analytics Grid -->
+            <div class="analytics-grid">
+                <!-- Industry Readiness Progression -->
+                <div class="analytics-card">
+                    <div class="card-title">📈 Industry Readiness Progression</div>
+                    <div class="progress-chart" id="readinessChart">
+                        <!-- Content will be dynamically generated -->
+                    </div>
+                    <p style="text-align: center; color: #7f8c8d; font-size: 0.9em; margin-top: 10px;">
+                        Shows progressive development from entry-level to industry-ready professional
+                    </p>
+                </div>
+
+                <!-- Comprehensive Competency Assessment -->
+                <div class="analytics-card">
+                    <div class="card-title">🎯 Multi-Dimensional Competency Analysis</div>
+                    <div class="competency-radar" id="competencyRadar">
+                        <!-- Content will be dynamically generated -->
+                    </div>
+                </div>
+
+                <!-- Technology Proficiency Mapping -->
+                <div class="analytics-card">
+                    <div class="card-title">💻 Technology Stack Proficiency</div>
+                    <div id="technologyProficiency">
+                        <!-- Content will be dynamically generated -->
+                    </div>
+                </div>
+
+                <!-- Industry Certification Readiness -->
+                <div class="analytics-card">
+                    <div class="card-title">🏆 Professional Certification Readiness</div>
+                    <div id="certificationReadiness">
+                        <!-- Content will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Semester Timeline -->
+            <div class="overview-section">
+                <h2 style="font-size: 1.8em; color: #2c3e50; margin-bottom: 20px; text-align: center;">🎓 Detailed Semester Assessment Timeline</h2>
+                <div class="semester-timeline" id="semesterTimeline">
+                    <!-- Content will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced industry demands data
+        const industryDemands = {
+            ist: {
+                title: "Information System & Technology",
+                demands: [
+                    {
+                        category: "☁️ Cloud & Infrastructure",
+                        skills: ["Multi-Cloud Architecture", "Container Orchestration", "Infrastructure as Code", "DevOps Automation", "Cloud Security"]
+                    },
+                    {
+                        category: "🔒 Cybersecurity & Compliance", 
+                        skills: ["Zero Trust Architecture", "GDPR Compliance", "Penetration Testing", "Incident Response", "Security Automation"]
+                    },
+                    {
+                        category: "🔧 System Integration",
+                        skills: ["Microservices Architecture", "API Gateway Management", "Event-Driven Architecture", "Legacy System Modernization"]
+                    },
+                    {
+                        category: "🚀 Emerging Technologies",
+                        skills: ["Edge Computing", "IoT Security", "Blockchain Integration", "Quantum Computing Prep", "AI/ML Operations"]
+                    }
+                ]
+            },
+            ds: {
+                title: "Data Science",
+                demands: [
+                    {
+                        category: "🤖 Advanced AI/ML",
+                        skills: ["Large Language Models", "Computer Vision", "Reinforcement Learning", "MLOps Pipeline", "AutoML Systems"]
+                    },
+                    {
+                        category: "📊 Big Data Engineering", 
+                        skills: ["Real-time Stream Processing", "Data Lake Architecture", "Apache Kafka", "Distributed Computing", "Data Governance"]
+                    },
+                    {
+                        category: "💼 Business Intelligence",
+                        skills: ["Advanced Analytics", "Predictive Modeling", "Statistical Analysis", "Data Storytelling", "Executive Dashboards"]
+                    },
+                    {
+                        category: "🎯 Specialized Analytics",
+                        skills: ["NLP & Text Mining", "Time Series Forecasting", "Recommender Systems", "A/B Testing", "Causal Inference"]
+                    }
+                ]
+            },
+            cs: {
+                title: "Computer Science",
+                demands: [
+                    {
+                        category: "💻 Full-Stack Development",
+                        skills: ["Modern JavaScript Frameworks", "Progressive Web Apps", "Serverless Architecture", "GraphQL APIs", "Mobile-First Design"]
+                    },
+                    {
+                        category: "🌟 Emerging Platforms",
+                        skills: ["AR/VR Development", "Game Engine Programming", "Blockchain DApps", "IoT Applications", "Cross-Platform Development"]
+                    },
+                    {
+                        category: "⚙️ Software Engineering",
+                        skills: ["Clean Architecture", "Test-Driven Development", "Continuous Integration", "Code Quality Automation", "Performance Optimization"]
+                    },
+                    {
+                        category: "🔬 Advanced Computing",
+                        skills: ["Algorithm Optimization", "Distributed Systems", "Real-time Processing", "Security Implementation", "Scalability Design"]
+                    }
+                ]
+            },
+            db: {
+                title: "Digital Business",
+                demands: [
+                    {
+                        category: "📱 Digital Marketing Excellence",
+                        skills: ["Growth Hacking", "Marketing Automation", "Conversion Optimization", "Social Commerce", "Influencer Strategy"]
+                    },
+                    {
+                        category: "💳 E-commerce & Fintech",
+                        skills: ["Payment Gateway Integration", "Marketplace Strategy", "Customer Journey Optimization", "Digital Wallet Systems"]
+                    },
+                    {
+                        category: "📈 Advanced Analytics",
+                        skills: ["Customer Lifetime Value", "Predictive Analytics", "Market Segmentation", "ROI Optimization", "Attribution Modeling"]
+                    },
+                    {
+                        category: "💡 Innovation Management",
+                        skills: ["Digital Transformation", "Startup Methodology", "Product Management", "Agile Business", "Design Thinking"]
+                    }
+                ]
+            },
+            feb: {
+                title: "Financial Economy & Banking",
+                demands: [
+                    {
+                        category: "💰 Fintech Innovation",
+                        skills: ["Digital Banking APIs", "Robo-Advisory Systems", "RegTech Solutions", "Open Banking", "Cryptocurrency Analysis"]
+                    },
+                    {
+                        category: "⚠️ Risk & Compliance",
+                        skills: ["Advanced Risk Modeling", "ESG Integration", "Anti-Money Laundering", "Stress Testing", "Regulatory Technology"]
+                    },
+                    {
+                        category: "📊 Quantitative Finance",
+                        skills: ["Algorithmic Trading", "Portfolio Optimization", "Derivatives Pricing", "Market Risk Analysis", "Alternative Data"]
+                    },
+                    {
+                        category: "🏢 Corporate Finance",
+                        skills: ["Financial Modeling", "Valuation Techniques", "M&A Analysis", "Treasury Operations", "Capital Structure"]
+                    }
+                ]
+            }
+        };
+
+        // Enhanced student competency data with detailed technology assessments
+        const competencyData = {
+            ist: {
+                "1": { 
+                    readiness: 15, 
+                    level: "Foundation Building",
+                    competencies: {
+                        technical: 20, business: 25, soft: 30, tools: 15, problem: 18, innovation: 12
+                    },
+                    technologyStack: {
+                        frontend: { html: 35, css: 30, javascript: 20, react: 0, vue: 0 },
+                        backend: { python: 25, java: 15, nodejs: 0, php: 10, dotnet: 0 },
+                        database: { mysql: 20, postgresql: 10, mongodb: 0, redis: 0, sqlite: 25 },
+                        cloud: { aws: 5, azure: 5, gcp: 0, docker: 0, kubernetes: 0 },
+                        devops: { git: 30, jenkins: 0, gitlab: 10, terraform: 0, ansible: 0 },
+                        mobile: { android: 0, ios: 0, reactnative: 0, flutter: 0, xamarin: 0 }
+                    },
+                    roles: [
+                        { name: "IT Support Intern", requirements: "Basic troubleshooting, customer service", readiness: "developing" },
+                        { name: "Technical Assistant", requirements: "Documentation, basic system knowledge", readiness: "developing" }
+                    ],
+                    gaps: ["Advanced Programming", "System Architecture", "Security Fundamentals", "Project Management"],
+                    certifications: [
+                        { name: "CompTIA IT Fundamentals", readiness: 40 },
+                        { name: "Microsoft Azure Fundamentals", readiness: 15 },
+                        { name: "AWS Cloud Practitioner", readiness: 10 }
+                    ]
+                },
+                "2": { 
+                    readiness: 30, 
+                    level: "Skill Development",
+                    competencies: {
+                        technical: 35, business: 30, soft: 40, tools: 25, problem: 32, innovation: 22
+                    },
+                    technologyStack: {
+                        frontend: { html: 60, css: 55, javascript: 45, react: 25, vue: 15 },
+                        backend: { python: 50, java: 40, nodejs: 30, php: 25, dotnet: 15 },
+                        database: { mysql: 45, postgresql: 35, mongodb: 20, redis: 10, sqlite: 50 },
+                        cloud: { aws: 20, azure: 25, gcp: 10, docker: 15, kubernetes: 5 },
+                        devops: { git: 60, jenkins: 15, gitlab: 30, terraform: 5, ansible: 0 },
+                        mobile: { android: 15, ios: 10, reactnative: 20, flutter: 10, xamarin: 5 }
+                    },
+                    roles: [
+                        { name: "Junior Developer", requirements: "OOP concepts, database knowledge", readiness: "almost-ready" },
+                        { name: "Database Assistant", requirements: "SQL proficiency, data modeling", readiness: "developing" }
+                    ],
+                    gaps: ["Advanced Algorithms", "System Design", "Cloud Computing", "DevOps Basics"],
+                    certifications: [
+                        { name: "CompTIA IT Fundamentals", readiness: 75 },
+                        { name: "Microsoft Azure Fundamentals", readiness: 35 },
+                        { name: "AWS Cloud Practitioner", readiness: 25 }
+                    ]
+                },
+                "3": { 
+                    readiness: 45, 
+                    level: "Intermediate Proficiency",
+                    competencies: {
+                        technical: 50, business: 40, soft: 45, tools: 40, problem: 48, innovation: 35
+                    },
+                    technologyStack: {
+                        frontend: { html: 80, css: 75, javascript: 70, react: 55, vue: 40 },
+                        backend: { python: 70, java: 65, nodejs: 60, php: 45, dotnet: 35 },
+                        database: { mysql: 70, postgresql: 60, mongodb: 45, redis: 30, sqlite: 75 },
+                        cloud: { aws: 45, azure: 50, gcp: 30, docker: 40, kubernetes: 25 },
+                        devops: { git: 80, jenkins: 35, gitlab: 55, terraform: 25, ansible: 15 },
+                        mobile: { android: 35, ios: 30, reactnative: 45, flutter: 35, xamarin: 20 }
+                    },
+                    roles: [
+                        { name: "Systems Analyst Intern", requirements: "System design, requirement analysis", readiness: "almost-ready" },
+                        { name: "Network Administrator", requirements: "Network protocols, troubleshooting", readiness: "ready" }
+                    ],
+                    gaps: ["Cloud Architecture", "Microservices", "Advanced Security", "AI/ML Integration"],
+                    certifications: [
+                        { name: "CompTIA Network+", readiness: 60 },
+                        { name: "Microsoft Azure Fundamentals", readiness: 55 },
+                        { name: "AWS Cloud Practitioner", readiness: 45 }
+                    ]
+                },
+                "4": { 
+                    readiness: 60, 
+                    level: "Advanced Application",
+                    competencies: {
+                        technical: 65, business: 55, soft: 60, tools: 55, problem: 62, innovation: 50
+                    },
+                    technologyStack: {
+                        frontend: { html: 90, css: 85, javascript: 85, react: 75, vue: 60 },
+                        backend: { python: 85, java: 80, nodejs: 75, php: 60, dotnet: 55 },
+                        database: { mysql: 85, postgresql: 80, mongodb: 70, redis: 55, sqlite: 90 },
+                        cloud: { aws: 70, azure: 75, gcp: 55, docker: 70, kubernetes: 50 },
+                        devops: { git: 95, jenkins: 60, gitlab: 75, terraform: 50, ansible: 35 },
+                        mobile: { android: 60, ios: 55, reactnative: 70, flutter: 60, xamarin: 40 }
+                    },
+                    roles: [
+                        { name: "Full-Stack Developer", requirements: "End-to-end development, API design", readiness: "ready" },
+                        { name: "Data Engineer", requirements: "ETL pipelines, data warehousing", readiness: "almost-ready" }
+                    ],
+                    gaps: ["Advanced Cloud Services", "Container Orchestration", "Enterprise Security"],
+                    certifications: [
+                        { name: "AWS Solutions Architect Associate", readiness: 50 },
+                        { name: "Microsoft Azure Developer", readiness: 45 },
+                        { name: "CompTIA Security+", readiness: 40 }
+                    ]
+                },
+                "5": { 
+                    readiness: 80, 
+                    level: "Industry Ready Specialist",
+                    competencies: {
+                        technical: 85, business: 70, soft: 75, tools: 80, problem: 82, innovation: 70
+                    },
+                    technologyStack: {
+                        frontend: { html: 95, css: 90, javascript: 90, react: 85, vue: 75 },
+                        backend: { python: 95, java: 90, nodejs: 85, php: 70, dotnet: 70 },
+                        database: { mysql: 95, postgresql: 90, mongodb: 85, redis: 75, sqlite: 95 },
+                        cloud: { aws: 85, azure: 90, gcp: 75, docker: 85, kubernetes: 75 },
+                        devops: { git: 98, jenkins: 80, gitlab: 90, terraform: 75, ansible: 60 },
+                        mobile: { android: 80, ios: 75, reactnative: 85, flutter: 80, xamarin: 60 }
+                    },
+                    roles: [
+                        { name: "Cloud Solutions Architect", requirements: "Multi-cloud expertise, enterprise solutions", readiness: "ready" },
+                        { name: "Security Specialist", requirements: "Advanced security protocols, compliance", readiness: "ready" },
+                        { name: "Data Architect", requirements: "Data strategy, governance frameworks", readiness: "almost-ready" }
+                    ],
+                    gaps: ["Executive Communication", "Strategic Planning", "Team Leadership"],
+                    certifications: [
+                        { name: "AWS Solutions Architect Professional", readiness: 70 },
+                        { name: "CISSP", readiness: 60 },
+                        { name: "Azure Solutions Architect Expert", readiness: 65 }
+                    ]
+                }
+            },
+            // Data Science program with technology stack focus
+            ds: {
+                "1": { 
+                    readiness: 12, 
+                    level: "Data Foundation", 
+                    competencies: { technical: 15, business: 20, soft: 25, tools: 10, problem: 15, innovation: 10 },
+                    technologyStack: {
+                        languages: { python: 30, r: 20, sql: 25, scala: 0, julia: 0 },
+                        datascience: { pandas: 25, numpy: 20, matplotlib: 30, seaborn: 15, plotly: 10 },
+                        ml: { sklearn: 15, tensorflow: 0, pytorch: 0, keras: 0, xgboost: 0 },
+                        bigdata: { hadoop: 0, spark: 0, kafka: 0, elasticsearch: 0, hive: 0 },
+                        cloud: { aws: 5, gcp: 10, azure: 5, databricks: 0, snowflake: 0 },
+                        tools: { jupyter: 40, vscode: 30, git: 25, docker: 0, tableau: 20 }
+                    },
+                    roles: [{ name: "Data Entry Specialist", requirements: "Basic data handling", readiness: "developing" }], 
+                    gaps: ["Statistical Analysis", "Programming Logic", "Data Visualization"], 
+                    certifications: [{ name: "Google Analytics", readiness: 30 }] 
+                },
+                "2": { 
+                    readiness: 28, 
+                    level: "Analytics Development", 
+                    competencies: { technical: 30, business: 35, soft: 35, tools: 25, problem: 30, innovation: 25 },
+                    technologyStack: {
+                        languages: { python: 60, r: 45, sql: 55, scala: 15, julia: 10 },
+                        datascience: { pandas: 60, numpy: 55, matplotlib: 65, seaborn: 50, plotly: 35 },
+                        ml: { sklearn: 45, tensorflow: 20, pytorch: 15, keras: 25, xgboost: 30 },
+                        bigdata: { hadoop: 15, spark: 10, kafka: 5, elasticsearch: 10, hive: 10 },
+                        cloud: { aws: 25, gcp: 30, azure: 20, databricks: 15, snowflake: 10 },
+                        tools: { jupyter: 75, vscode: 60, git: 50, docker: 20, tableau: 55 }
+                    },
+                    roles: [{ name: "Data Analyst Intern", requirements: "Basic analytics, visualization", readiness: "almost-ready" }], 
+                    gaps: ["Machine Learning", "Advanced Statistics", "Big Data Tools"], 
+                    certifications: [{ name: "Google Data Analytics", readiness: 60 }] 
+                },
+                "3": { 
+                    readiness: 50, 
+                    level: "Data Science Application", 
+                    competencies: { technical: 55, business: 45, soft: 50, tools: 45, problem: 52, innovation: 45 },
+                    technologyStack: {
+                        languages: { python: 80, r: 70, sql: 75, scala: 40, julia: 30 },
+                        datascience: { pandas: 85, numpy: 80, matplotlib: 85, seaborn: 75, plotly: 70 },
+                        ml: { sklearn: 75, tensorflow: 50, pytorch: 45, keras: 60, xgboost: 65 },
+                        bigdata: { hadoop: 40, spark: 35, kafka: 25, elasticsearch: 30, hive: 35 },
+                        cloud: { aws: 50, gcp: 55, azure: 45, databricks: 40, snowflake: 35 },
+                        tools: { jupyter: 90, vscode: 80, git: 75, docker: 45, tableau: 80 }
+                    },
+                    roles: [{ name: "Data Scientist Intern", requirements: "ML algorithms, statistical modeling", readiness: "ready" }], 
+                    gaps: ["Deep Learning", "MLOps", "Advanced Algorithms"], 
+                    certifications: [{ name: "Google Professional Data Engineer", readiness: 45 }] 
+                },
+                "4": { 
+                    readiness: 65, 
+                    level: "Advanced Analytics", 
+                    competencies: { technical: 70, business: 60, soft: 65, tools: 65, problem: 68, innovation: 60 },
+                    technologyStack: {
+                        languages: { python: 90, r: 80, sql: 85, scala: 60, julia: 50 },
+                        datascience: { pandas: 95, numpy: 90, matplotlib: 90, seaborn: 85, plotly: 85 },
+                        ml: { sklearn: 90, tensorflow: 75, pytorch: 70, keras: 80, xgboost: 85 },
+                        bigdata: { hadoop: 65, spark: 70, kafka: 55, elasticsearch: 60, hive: 65 },
+                        cloud: { aws: 75, gcp: 80, azure: 70, databricks: 70, snowflake: 65 },
+                        tools: { jupyter: 95, vscode: 90, git: 90, docker: 70, tableau: 90 }
+                    },
+                    roles: [{ name: "ML Engineer", requirements: "Model deployment, production systems", readiness: "ready" }], 
+                    gaps: ["Enterprise ML", "Advanced NLP", "Computer Vision"], 
+                    certifications: [{ name: "AWS Machine Learning", readiness: 55 }] 
+                },
+                "5": { 
+                    readiness: 85, 
+                    level: "Data Science Expert", 
+                    competencies: { technical: 90, business: 75, soft: 80, tools: 85, problem: 88, innovation: 80 },
+                    technologyStack: {
+                        languages: { python: 95, r: 90, sql: 95, scala: 80, julia: 70 },
+                        datascience: { pandas: 98, numpy: 95, matplotlib: 95, seaborn: 90, plotly: 90 },
+                        ml: { sklearn: 95, tensorflow: 90, pytorch: 85, keras: 90, xgboost: 90 },
+                        bigdata: { hadoop: 85, spark: 90, kafka: 80, elasticsearch: 85, hive: 85 },
+                        cloud: { aws: 90, gcp: 95, azure: 85, databricks: 90, snowflake: 85 },
+                        tools: { jupyter: 98, vscode: 95, git: 95, docker: 85, tableau: 95 }
+                    },
+                    roles: [{ name: "Senior Data Scientist", requirements: "Advanced ML, business strategy", readiness: "ready" }], 
+                    gaps: ["Executive Presentation", "Research Leadership"], 
+                    certifications: [{ name: "Google Professional ML Engineer", readiness: 75 }] 
+                }
+            },
+            // Computer Science program
+            cs: {
+                "1": { 
+                    readiness: 18, 
+                    level: "Programming Foundation", 
+                    competencies: { technical: 25, business: 15, soft: 30, tools: 20, problem: 22, innovation: 15 },
+                    technologyStack: {
+                        frontend: { html: 40, css: 35, javascript: 25, react: 0, angular: 0, vue: 0 },
+                        backend: { python: 30, java: 35, cpp: 25, csharp: 15, go: 0, rust: 0 },
+                        mobile: { android: 10, ios: 5, reactnative: 0, flutter: 15, xamarin: 0, kotlin: 10 },
+                        database: { mysql: 25, postgresql: 15, mongodb: 10, sqlite: 30, redis: 0, cassandra: 0 },
+                        devops: { git: 35, docker: 0, kubernetes: 0, jenkins: 0, gitlab: 15, github: 40 },
+                        gamedev: { unity: 20, unreal: 10, godot: 15, blender: 25, maya: 10, substance: 5 }
+                    },
+                    roles: [{ name: "Junior Developer Intern", requirements: "Basic programming concepts", readiness: "developing" }], 
+                    gaps: ["Object-Oriented Design", "Data Structures", "Algorithm Analysis"], 
+                    certifications: [{ name: "Oracle Java SE", readiness: 25 }] 
+                },
+                "2": { 
+                    readiness: 35, 
+                    level: "Software Development", 
+                    competencies: { technical: 40, business: 25, soft: 40, tools: 35, problem: 38, innovation: 30 },
+                    technologyStack: {
+                        frontend: { html: 70, css: 65, javascript: 55, react: 35, angular: 25, vue: 20 },
+                        backend: { python: 60, java: 65, cpp: 50, csharp: 40, go: 15, rust: 10 },
+                        mobile: { android: 35, ios: 25, reactnative: 30, flutter: 40, xamarin: 15, kotlin: 35 },
+                        database: { mysql: 55, postgresql: 45, mongodb: 35, sqlite: 60, redis: 20, cassandra: 10 },
+                        devops: { git: 70, docker: 25, kubernetes: 5, jenkins: 15, gitlab: 45, github: 75 },
+                        gamedev: { unity: 45, unreal: 30, godot: 35, blender: 50, maya: 30, substance: 25 }
+                    },
+                    roles: [{ name: "Frontend Developer", requirements: "Web technologies, UI frameworks", readiness: "almost-ready" }], 
+                    gaps: ["Backend Development", "Database Design", "System Architecture"], 
+                    certifications: [{ name: "AWS Developer Associate", readiness: 30 }] 
+                },
+                "3": { 
+                    readiness: 52, 
+                    level: "Full-Stack Capability", 
+                    competencies: { technical: 60, business: 35, soft: 55, tools: 50, problem: 55, innovation: 45 },
+                    technologyStack: {
+                        frontend: { html: 85, css: 80, javascript: 75, react: 65, angular: 50, vue: 45 },
+                        backend: { python: 80, java: 85, cpp: 70, csharp: 65, go: 40, rust: 30 },
+                        mobile: { android: 60, ios: 50, reactnative: 60, flutter: 70, xamarin: 35, kotlin: 60 },
+                        database: { mysql: 80, postgresql: 70, mongodb: 60, sqlite: 85, redis: 45, cassandra: 30 },
+                        devops: { git: 90, docker: 55, kubernetes: 30, jenkins: 40, gitlab: 70, github: 90 },
+                        gamedev: { unity: 70, unreal: 55, godot: 60, blender: 75, maya: 55, substance: 50 }
+                    },
+                    roles: [{ name: "Software Developer", requirements: "Full development lifecycle", readiness: "ready" }], 
+                    gaps: ["Microservices", "Cloud Native", "DevOps"], 
+                    certifications: [{ name: "Google Cloud Developer", readiness: 40 }] 
+                },
+                "4": { 
+                    readiness: 68, 
+                    level: "Advanced Engineering", 
+                    competencies: { technical: 75, business: 50, soft: 70, tools: 70, problem: 72, innovation: 65 },
+                    technologyStack: {
+                        frontend: { html: 95, css: 90, javascript: 90, react: 85, angular: 75, vue: 70 },
+                        backend: { python: 90, java: 95, cpp: 85, csharp: 80, go: 70, rust: 55 },
+                        mobile: { android: 85, ios: 75, reactnative: 85, flutter: 90, xamarin: 60, kotlin: 85 },
+                        database: { mysql: 95, postgresql: 90, mongodb: 85, sqlite: 95, redis: 75, cassandra: 60 },
+                        devops: { git: 98, docker: 80, kubernetes: 65, jenkins: 70, gitlab: 90, github: 98 },
+                        gamedev: { unity: 90, unreal: 80, godot: 85, blender: 90, maya: 80, substance: 75 }
+                    },
+                    roles: [{ name: "Senior Developer", requirements: "System design, team leadership", readiness: "ready" }], 
+                    gaps: ["Enterprise Architecture", "Performance Optimization"], 
+                    certifications: [{ name: "AWS Solutions Architect", readiness: 50 }] 
+                },
+                "5": { 
+                    readiness: 82, 
+                    level: "Software Engineering Expert", 
+                    competencies: { technical: 90, business: 65, soft: 80, tools: 85, problem: 85, innovation: 75 },
+                    technologyStack: {
+                        frontend: { html: 98, css: 95, javascript: 95, react: 95, angular: 90, vue: 85 },
+                        backend: { python: 95, java: 98, cpp: 90, csharp: 90, go: 85, rust: 75 },
+                        mobile: { android: 95, ios: 90, reactnative: 95, flutter: 95, xamarin: 80, kotlin: 95 },
+                        database: { mysql: 98, postgresql: 95, mongodb: 90, sqlite: 98, redis: 90, cassandra: 80 },
+                        devops: { git: 99, docker: 95, kubernetes: 85, jenkins: 90, gitlab: 95, github: 99 },
+                        gamedev: { unity: 95, unreal: 90, godot: 90, blender: 95, maya: 90, substance: 90 }
+                    },
+                    roles: [{ name: "Tech Lead", requirements: "Technical strategy, team management", readiness: "ready" }], 
+                    gaps: ["Executive Strategy", "Innovation Leadership"], 
+                    certifications: [{ name: "Google Cloud Professional Architect", readiness: 70 }] 
+                }
+            },
+            // Digital Business and FEB programs with simplified tech stacks
+            db: {
+                "1": { readiness: 20, level: "Business Foundation", competencies: { technical: 15, business: 35, soft: 40, tools: 20, problem: 25, innovation: 20 }, technologyStack: { marketing: { googleads: 25, facebook: 30, analytics: 35, mailchimp: 20, hootsuite: 25 }, business: { excel: 60, powerpoint: 65, word: 70, outlook: 65, teams: 50 }, ecommerce: { shopify: 15, woocommerce: 10, magento: 5, prestashop: 5, opencart: 5 }, analytics: { googleanalytics: 40, hotjar: 15, mixpanel: 10, amplitude: 5, tableau: 20 }, crm: { hubspot: 20, salesforce: 15, pipedrive: 25, zoho: 20, mailchimp: 30 }, design: { canva: 70, photoshop: 25, illustrator: 15, figma: 30, sketch: 10 } }, roles: [{ name: "Marketing Assistant", requirements: "Basic marketing concepts", readiness: "developing" }], gaps: ["Digital Analytics", "Marketing Automation", "Data Analysis"], certifications: [{ name: "Google Ads", readiness: 35 }] },
+                "2": { readiness: 38, level: "Digital Marketing", competencies: { technical: 30, business: 50, soft: 45, tools: 35, problem: 40, innovation: 35 }, technologyStack: { marketing: { googleads: 65, facebook: 70, analytics: 70, mailchimp: 60, hootsuite: 65 }, business: { excel: 80, powerpoint: 85, word: 85, outlook: 80, teams: 75 }, ecommerce: { shopify: 50, woocommerce: 40, magento: 25, prestashop: 30, opencart: 25 }, analytics: { googleanalytics: 75, hotjar: 50, mixpanel: 40, amplitude: 30, tableau: 55 }, crm: { hubspot: 60, salesforce: 45, pipedrive: 65, zoho: 55, mailchimp: 70 }, design: { canva: 90, photoshop: 55, illustrator: 40, figma: 65, sketch: 35 } }, roles: [{ name: "Digital Marketing Specialist", requirements: "Campaign management, analytics", readiness: "almost-ready" }], gaps: ["Advanced Analytics", "Growth Hacking", "Conversion Optimization"], certifications: [{ name: "Google Analytics", readiness: 65 }] },
+                "3": { readiness: 55, level: "Business Analysis", competencies: { technical: 45, business: 70, soft: 60, tools: 50, problem: 58, innovation: 50 }, technologyStack: { marketing: { googleads: 85, facebook: 90, analytics: 90, mailchimp: 85, hootsuite: 85 }, business: { excel: 95, powerpoint: 95, word: 95, outlook: 90, teams: 90 }, ecommerce: { shopify: 80, woocommerce: 70, magento: 55, prestashop: 60, opencart: 55 }, analytics: { googleanalytics: 90, hotjar: 75, mixpanel: 70, amplitude: 65, tableau: 80 }, crm: { hubspot: 85, salesforce: 75, pipedrive: 85, zoho: 80, mailchimp: 90 }, design: { canva: 95, photoshop: 80, illustrator: 70, figma: 85, sketch: 65 } }, roles: [{ name: "Product Manager", requirements: "Product strategy, user research", readiness: "ready" }], gaps: ["Advanced Analytics", "AI Applications", "Strategic Planning"], certifications: [{ name: "Google Cloud Digital Leader", readiness: 50 }] },
+                "4": { readiness: 70, level: "Strategic Business", competencies: { technical: 60, business: 85, soft: 75, tools: 70, problem: 75, innovation: 70 }, technologyStack: { marketing: { googleads: 95, facebook: 95, analytics: 95, mailchimp: 95, hootsuite: 95 }, business: { excel: 98, powerpoint: 98, word: 98, outlook: 95, teams: 95 }, ecommerce: { shopify: 95, woocommerce: 85, magento: 75, prestashop: 80, opencart: 75 }, analytics: { googleanalytics: 95, hotjar: 90, mixpanel: 85, amplitude: 80, tableau: 95 }, crm: { hubspot: 95, salesforce: 90, pipedrive: 95, zoho: 90, mailchimp: 95 }, design: { canva: 98, photoshop: 90, illustrator: 85, figma: 95, sketch: 80 } }, roles: [{ name: "Business Development Manager", requirements: "Strategic planning, partnership", readiness: "ready" }], gaps: ["Executive Leadership", "Global Strategy"], certifications: [{ name: "Salesforce Administrator", readiness: 60 }] },
+                "5": { readiness: 85, level: "Digital Strategy Expert", competencies: { technical: 75, business: 95, soft: 90, tools: 80, problem: 88, innovation: 85 }, technologyStack: { marketing: { googleads: 98, facebook: 98, analytics: 98, mailchimp: 98, hootsuite: 98 }, business: { excel: 99, powerpoint: 99, word: 99, outlook: 98, teams: 98 }, ecommerce: { shopify: 98, woocommerce: 95, magento: 90, prestashop: 90, opencart: 85 }, analytics: { googleanalytics: 98, hotjar: 95, mixpanel: 90, amplitude: 90, tableau: 98 }, crm: { hubspot: 98, salesforce: 95, pipedrive: 98, zoho: 95, mailchimp: 98 }, design: { canva: 99, photoshop: 95, illustrator: 90, figma: 98, sketch: 90 } }, roles: [{ name: "Chief Digital Officer", requirements: "Digital transformation leadership", readiness: "ready" }], gaps: ["Board Communication", "Global Market Strategy"], certifications: [{ name: "AWS Business Professional", readiness: 70 }] }
+            },
+            feb: {
+                "1": { readiness: 22, level: "Finance Foundation", competencies: { technical: 20, business: 40, soft: 35, tools: 25, problem: 28, innovation: 20 }, technologyStack: { finance: { excel: 70, bloomberg: 15, refinitiv: 10, factset: 5, morningstar: 20 }, analysis: { python: 10, r: 5, matlab: 15, stata: 10, sas: 5 }, trading: { metatrader: 10, thinkorswim: 15, tradingview: 25, ninjatrader: 5, multicharts: 5 }, risk: { var: 15, montecarlo: 5, riskmetrics: 5, creditrisk: 10, operationalrisk: 8 }, regulatory: { basel: 10, mifid: 8, gdpr: 15, kyc: 20, aml: 15 }, blockchain: { bitcoin: 20, ethereum: 15, defi: 10, smartcontracts: 5, nft: 15 } }, roles: [{ name: "Banking Teller", requirements: "Basic financial operations", readiness: "developing" }], gaps: ["Financial Analysis", "Risk Assessment", "Investment Theory"], certifications: [{ name: "Bloomberg Market Concepts", readiness: 40 }] },
+                "2": { readiness: 40, level: "Financial Analysis", competencies: { technical: 35, business: 55, soft: 45, tools: 40, problem: 42, innovation: 35 }, technologyStack: { finance: { excel: 90, bloomberg: 45, refinitiv: 35, factset: 25, morningstar: 55 }, analysis: { python: 40, r: 30, matlab: 45, stata: 35, sas: 25 }, trading: { metatrader: 35, thinkorswim: 45, tradingview: 65, ninjatrader: 25, multicharts: 30 }, risk: { var: 45, montecarlo: 30, riskmetrics: 35, creditrisk: 40, operationalrisk: 35 }, regulatory: { basel: 35, mifid: 30, gdpr: 45, kyc: 60, aml: 55 }, blockchain: { bitcoin: 55, ethereum: 45, defi: 35, smartcontracts: 25, nft: 40 } }, roles: [{ name: "Financial Analyst", requirements: "Financial modeling, analysis", readiness: "almost-ready" }], gaps: ["Advanced Modeling", "Risk Management", "Portfolio Theory"], certifications: [{ name: "CFA Level I", readiness: 30 }] },
+                "3": { readiness: 58, level: "Risk & Investment", competencies: { technical: 50, business: 75, soft: 65, tools: 55, problem: 60, innovation: 50 }, technologyStack: { finance: { excel: 95, bloomberg: 75, refinitiv: 65, factset: 55, morningstar: 80 }, analysis: { python: 70, r: 65, matlab: 75, stata: 70, sas: 60 }, trading: { metatrader: 65, thinkorswim: 75, tradingview: 85, ninjatrader: 55, multicharts: 65 }, risk: { var: 75, montecarlo: 65, riskmetrics: 70, creditrisk: 75, operationalrisk: 70 }, regulatory: { basel: 70, mifid: 65, gdpr: 75, kyc: 85, aml: 80 }, blockchain: { bitcoin: 80, ethereum: 75, defi: 65, smartcontracts: 55, nft: 70 } }, roles: [{ name: "Risk Analyst", requirements: "Risk modeling, compliance", readiness: "ready" }], gaps: ["Advanced Derivatives", "Quantitative Analysis", "Regulatory Compliance"], certifications: [{ name: "FRM Part I", readiness: 45 }] },
+                "4": { readiness: 72, level: "Advanced Finance", competencies: { technical: 65, business: 85, soft: 75, tools: 70, problem: 75, innovation: 65 }, technologyStack: { finance: { excel: 98, bloomberg: 90, refinitiv: 85, factset: 80, morningstar: 90 }, analysis: { python: 85, r: 80, matlab: 90, stata: 85, sas: 80 }, trading: { metatrader: 85, thinkorswim: 90, tradingview: 95, ninjatrader: 80, multicharts: 85 }, risk: { var: 90, montecarlo: 85, riskmetrics: 90, creditrisk: 90, operationalrisk: 85 }, regulatory: { basel: 90, mifid: 85, gdpr: 90, kyc: 95, aml: 95 }, blockchain: { bitcoin: 95, ethereum: 90, defi: 85, smartcontracts: 80, nft: 85 } }, roles: [{ name: "Portfolio Manager", requirements: "Investment strategy, client management", readiness: "ready" }], gaps: ["Executive Management", "Global Markets"], certifications: [{ name: "CFA Level II", readiness: 55 }] },
+                "5": { readiness: 88, level: "Finance Executive", competencies: { technical: 80, business: 95, soft: 85, tools: 85, problem: 90, innovation: 80 }, technologyStack: { finance: { excel: 99, bloomberg: 98, refinitiv: 95, factset: 95, morningstar: 98 }, analysis: { python: 95, r: 90, matlab: 95, stata: 95, sas: 90 }, trading: { metatrader: 95, thinkorswim: 98, tradingview: 98, ninjatrader: 90, multicharts: 95 }, risk: { var: 98, montecarlo: 95, riskmetrics: 98, creditrisk: 98, operationalrisk: 95 }, regulatory: { basel: 98, mifid: 95, gdpr: 98, kyc: 99, aml: 99 }, blockchain: { bitcoin: 98, ethereum: 98, defi: 95, smartcontracts: 90, nft: 95 } }, roles: [{ name: "Chief Risk Officer", requirements: "Strategic risk management", readiness: "ready" }], gaps: ["Board Leadership", "Regulatory Innovation"], certifications: [{ name: "CFA Charter", readiness: 65 }] }
+            }
+        };
+
+        let currentProgram = 'ist';
+
+        function getScoreClass(score) {
+            if (score >= 75) return 'score-excellent';
+            if (score >= 60) return 'score-good';
+            if (score >= 40) return 'score-fair';
+            return 'score-poor';
+        }
+
+        function renderIndustryDemands() {
+            const container = document.getElementById('industryDemands');
+            const demands = industryDemands[currentProgram];
+            
+            document.getElementById('currentProgramTitle').textContent = demands.title;
+            
+            container.innerHTML = demands.demands.map(category => `
+                <div class="demand-category">
+                    <h4>${category.category}</h4>
+                    <ul class="skill-list">
+                        ${category.skills.map(skill => `<li>${skill}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        function renderMarketAlignment() {
+            const container = document.getElementById('marketAlignment');
+            const data = competencyData[currentProgram];
+            
+            const avgReadiness = Object.values(data).reduce((sum, sem) => sum + sem.readiness, 0) / Object.keys(data).length;
+            const maxReadiness = Math.max(...Object.values(data).map(sem => sem.readiness));
+            const industryGap = 100 - maxReadiness;
+            const employabilityScore = Math.round((avgReadiness + maxReadiness) / 2);
+            
+            container.innerHTML = `
+                <div class="alignment-item">
+                    <div class="alignment-score">${Math.round(avgReadiness)}%</div>
+                    <div class="alignment-label">Average Program Readiness</div>
+                </div>
+                <div class="alignment-item">
+                    <div class="alignment-score">${maxReadiness}%</div>
+                    <div class="alignment-label">Peak Competency Level</div>
+                </div>
+                <div class="alignment-item">
+                    <div class="alignment-score">${industryGap}%</div>
+                    <div class="alignment-label">Skills Gap to Close</div>
+                </div>
+                <div class="alignment-item">
+                    <div class="alignment-score">${employabilityScore}%</div>
+                    <div class="alignment-label">Overall Employability</div>
+                </div>
+            `;
+        }
+
+        function renderReadinessChart() {
+            const container = document.getElementById('readinessChart');
+            const data = competencyData[currentProgram];
+            
+            container.innerHTML = Object.entries(data).map(([sem, semData]) => `
+                <div class="progress-bar" style="height: ${semData.readiness * 2.5}px" title="Semester ${sem}: ${semData.readiness}% - ${semData.level}">
+                    <div class="progress-value">${semData.readiness}%</div>
+                    <div class="progress-label">Sem ${sem}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCompetencyRadar() {
+            const container = document.getElementById('competencyRadar');
+            const data = competencyData[currentProgram];
+            
+            // Calculate average competencies across all semesters
+            const avgCompetencies = {
+                technical: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.technical, 0) / Object.keys(data).length),
+                business: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.business, 0) / Object.keys(data).length),
+                soft: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.soft, 0) / Object.keys(data).length),
+                tools: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.tools, 0) / Object.keys(data).length),
+                problem: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.problem, 0) / Object.keys(data).length),
+                innovation: Math.round(Object.values(data).reduce((sum, sem) => sum + sem.competencies.innovation, 0) / Object.keys(data).length)
+            };
+            
+            container.innerHTML = `
+                <div class="competency-item technical">
+                    <div class="competency-header">
+                        <span class="competency-name">Technical Expertise</span>
+                        <span class="competency-score">${avgCompetencies.technical}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress technical" style="width: ${avgCompetencies.technical}%"></div>
+                    </div>
+                </div>
+                <div class="competency-item business">
+                    <div class="competency-header">
+                        <span class="competency-name">Business Acumen</span>
+                        <span class="competency-score">${avgCompetencies.business}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress business" style="width: ${avgCompetencies.business}%"></div>
+                    </div>
+                </div>
+                <div class="competency-item soft">
+                    <div class="competency-header">
+                        <span class="competency-name">Soft Skills</span>
+                        <span class="competency-score">${avgCompetencies.soft}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress soft" style="width: ${avgCompetencies.soft}%"></div>
+                    </div>
+                </div>
+                <div class="competency-item tools">
+                    <div class="competency-header">
+                        <span class="competency-name">Technology Tools</span>
+                        <span class="competency-score">${avgCompetencies.tools}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress tools" style="width: ${avgCompetencies.tools}%"></div>
+                    </div>
+                </div>
+                <div class="competency-item problem">
+                    <div class="competency-header">
+                        <span class="competency-name">Problem Solving</span>
+                        <span class="competency-score">${avgCompetencies.problem}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress problem" style="width: ${avgCompetencies.problem}%"></div>
+                    </div>
+                </div>
+                <div class="competency-item innovation">
+                    <div class="competency-header">
+                        <span class="competency-name">Innovation Potential</span>
+                        <span class="competency-score">${avgCompetencies.innovation}%</span>
+                    </div>
+                    <div class="competency-bar">
+                        <div class="competency-progress innovation" style="width: ${avgCompetencies.innovation}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTechnologyProficiency() {
+            const container = document.getElementById('technologyProficiency');
+            const data = competencyData[currentProgram];
+            
+            // Get the final semester's technology stack
+            const finalSemester = data["5"];
+            if (finalSemester && finalSemester.technologyStack) {
+                const techStack = finalSemester.technologyStack;
+                
+                // Create technology category mappings based on program
+                const categoryLabels = {
+                    ist: {
+                        frontend: "🌐 Frontend Technologies",
+                        backend: "⚙️ Backend Development", 
+                        database: "🗄️ Database Systems",
+                        cloud: "☁️ Cloud Platforms",
+                        devops: "🔧 DevOps & Tools",
+                        mobile: "📱 Mobile Development"
+                    },
+                    ds: {
+                        languages: "💻 Programming Languages",
+                        datascience: "📊 Data Science Libraries",
+                        ml: "🤖 Machine Learning",
+                        bigdata: "🏗️ Big Data Technologies", 
+                        cloud: "☁️ Cloud & ML Platforms",
+                        tools: "🛠️ Development Tools"
+                    },
+                    cs: {
+                        frontend: "🌐 Frontend Development",
+                        backend: "⚙️ Backend Languages",
+                        mobile: "📱 Mobile Platforms",
+                        database: "🗄️ Database Systems",
+                        devops: "🔧 DevOps Pipeline",
+                        gamedev: "🎮 Game Development"
+                    },
+                    db: {
+                        marketing: "📢 Marketing Platforms",
+                        business: "💼 Business Applications",
+                        ecommerce: "🛒 E-commerce Platforms",
+                        analytics: "📊 Analytics Tools",
+                        crm: "👥 CRM Systems",
+                        design: "🎨 Design Tools"
+                    },
+                    feb: {
+                        finance: "💰 Financial Platforms",
+                        analysis: "📈 Analysis Tools",
+                        trading: "📊 Trading Platforms",
+                        risk: "⚠️ Risk Management",
+                        regulatory: "📋 Regulatory & Compliance",
+                        blockchain: "🔗 Blockchain & Crypto"
+                    }
+                };
+
+                const labels = categoryLabels[currentProgram] || {};
+                
+                container.innerHTML = Object.entries(techStack).map(([category, technologies]) => `
+                    <div class="assessment-category">
+                        <div class="category-title">${labels[category] || category.charAt(0).toUpperCase() + category.slice(1)}</div>
+                        <div class="assessment-items">
+                            ${Object.entries(technologies).map(([tech, proficiency]) => `
+                                <div class="assessment-item">
+                                    <span class="item-name">${tech.charAt(0).toUpperCase() + tech.slice(1)}</span>
+                                    <span class="item-score ${getScoreClass(proficiency)}">${proficiency}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('') + `
+                    <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+                        <h5 style="color: #2c3e50; margin-bottom: 8px;">🎯 Technology Readiness Summary</h5>
+                        <p style="font-size: 0.9em; color: #7f8c8d; line-height: 1.4;">
+                            Student demonstrates ${getCurrentTechLevel()} proficiency across ${Object.keys(techStack).length} technology categories, 
+                            with highest competency in ${getTopTechCategory(techStack)} and development opportunities in ${getBottomTechCategory(techStack)}.
+                        </p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Technology stack assessment not available for this program level</p>';
+            }
+        }
+
+        function getCurrentTechLevel() {
+            const data = competencyData[currentProgram]["5"];
+            if (data && data.technologyStack) {
+                const avgScore = calculateAverageTechScore(data.technologyStack);
+                if (avgScore >= 80) return "expert-level";
+                if (avgScore >= 65) return "advanced";
+                if (avgScore >= 50) return "intermediate";
+                return "developing";
+            }
+            return "basic";
+        }
+
+        function getTopTechCategory(techStack) {
+            let maxAvg = 0;
+            let topCategory = "";
+            
+            Object.entries(techStack).forEach(([category, technologies]) => {
+                const avg = Object.values(technologies).reduce((sum, score) => sum + score, 0) / Object.keys(technologies).length;
+                if (avg > maxAvg) {
+                    maxAvg = avg;
+                    topCategory = category;
+                }
+            });
+            
+            return topCategory.charAt(0).toUpperCase() + topCategory.slice(1);
+        }
+
+        function getBottomTechCategory(techStack) {
+            let minAvg = 100;
+            let bottomCategory = "";
+            
+            Object.entries(techStack).forEach(([category, technologies]) => {
+                const avg = Object.values(technologies).reduce((sum, score) => sum + score, 0) / Object.keys(technologies).length;
+                if (avg < minAvg) {
+                    minAvg = avg;
+                    bottomCategory = category;
+                }
+            });
+            
+            return bottomCategory.charAt(0).toUpperCase() + bottomCategory.slice(1);
+        }
+
+        function calculateAverageTechScore(techStack) {
+            let totalScore = 0;
+            let totalItems = 0;
+            
+            Object.values(techStack).forEach(technologies => {
+                Object.values(technologies).forEach(score => {
+                    totalScore += score;
+                    totalItems++;
+                });
+            });
+            
+            return totalItems > 0 ? Math.round(totalScore / totalItems) : 0;
+        }
+
+        function renderCertificationReadiness() {
+            const container = document.getElementById('certificationReadiness');
+            const data = competencyData[currentProgram];
+            
+            // Get certification data from final semester
+            const finalSemester = data["5"];
+            if (finalSemester && finalSemester.certifications) {
+                container.innerHTML = `
+                    <div class="certification-readiness">
+                        ${finalSemester.certifications.map(cert => `
+                            <div class="cert-item">
+                                <span class="cert-name">${cert.name}</span>
+                                <span class="cert-readiness ${getScoreClass(cert.readiness)}">${cert.readiness}% Ready</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Certification data not available</p>';
+            }
+        }
+
+        function renderSemesterTimeline() {
+            const container = document.getElementById('semesterTimeline');
+            const data = competencyData[currentProgram];
+            
+            container.innerHTML = Object.entries(data).map(([sem, semData]) => `
+                <div class="semester-card">
+                    <div class="semester-header">
+                        <div class="semester-number">Semester ${sem}</div>
+                        <div class="readiness-percentage">${semData.readiness}% Industry Ready</div>
+                        <div class="readiness-level">${semData.level}</div>
+                    </div>
+                    
+                    <div class="skills-section">
+                        <h4 style="margin-bottom: 10px; color: #2c3e50; font-size: 1em;">Multi-Dimensional Competencies</h4>
+                        <div class="competency-radar">
+                            ${Object.entries(semData.competencies).map(([skill, score]) => `
+                                <div class="competency-item ${skill}">
+                                    <div class="competency-header">
+                                        <span class="competency-name">${skill.charAt(0).toUpperCase() + skill.slice(1)}</span>
+                                        <span class="competency-score">${score}%</span>
+                                    </div>
+                                    <div class="competency-bar">
+                                        <div class="competency-progress ${skill}" style="width: ${score}%"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="roles-section">
+                        <h4 style="margin-bottom: 10px; color: #2c3e50; font-size: 1em;">Career Readiness Assessment</h4>
+                        ${semData.roles.map(role => `
+                            <div class="role-card">
+                                <div class="role-name">${role.name}</div>
+                                <div class="role-requirements">${role.requirements}</div>
+                                <span class="readiness-indicator ${role.readiness}">${role.readiness.replace('-', ' ')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${semData.gaps ? `
+                        <div class="gap-analysis">
+                            <div class="gap-title">🎯 Skills Development Areas</div>
+                            <div class="gap-items">
+                                ${semData.gaps.map(gap => `<span class="gap-item">${gap}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('') + `
+                <div class="semester-card" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%); color: white; border-top: 4px solid #8e44ad;">
+                    <div class="semester-header">
+                        <div class="semester-number">Semester 6-8</div>
+                        <div class="readiness-percentage">95% Industry Ready</div>
+                        <div class="readiness-level">Professional Excellence</div>
+                    </div>
+                    <div style="text-align: center; padding: 20px;">
+                        <h4>🎓 Industry Immersion & Capstone</h4>
+                        <p style="margin-top: 15px; font-size: 0.9em; line-height: 1.5;">
+                            • 6-month intensive industry internship<br>
+                            • Advanced capstone project<br>
+                            • Professional certification preparation<br>
+                            • Career transition & job placement support
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function switchProgram(program) {
+            currentProgram = program;
+            
+            // Update button states
+            document.querySelectorAll('.program-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-program="${program}"]`).classList.add('active');
+            
+            // Re-render all content
+            renderIndustryDemands();
+            renderMarketAlignment();
+            renderReadinessChart();
+            renderCompetencyRadar();
+            renderTechnologyProficiency();
+            renderCertificationReadiness();
+            renderSemesterTimeline();
+        }
+
+        // Event listeners
+        document.querySelectorAll('.program-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                switchProgram(e.target.dataset.program);
+            });
+        });
+
+        // Initial render
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                renderIndustryDemands();
+                renderMarketAlignment();
+                renderReadinessChart();
+                renderCompetencyRadar();
+                renderTechnologyProficiency();
+                renderCertificationReadiness();
+                renderSemesterTimeline();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -68,6 +68,9 @@ df_dosen_uas = pd.read_csv("soal_dosen_uas.csv")
 df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
 df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_tugas_reguler = pd.read_csv("tugas_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_kuis_reguler = pd.read_csv("kuis_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_akhir_ds_reg = pd.read_csv("akhir_ds_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_pro = pd.read_csv("uts_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_abs_com_pro_reg = pd.read_csv("absensi_com_pro_reguler_sains_data.csv")
 df_abs_com_pro_pros = pd.read_csv("absensi_com_pro_pros_sains_data.csv")
@@ -87,10 +90,34 @@ df_abs_dw_pros = pd.read_csv("absensi_dw_pros_sains_data.csv")
 df_mhs_reg = pd.read_csv("total_mhs_reguler_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
 df_mhs_pro = pd.read_csv("total_mhs_pro_sains_data.csv", dtype={'NIM': str, 'Tahun': str})
 
-
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit.components.v1 as components
+
+def display_html_file(html_path: str = None, uploaded_file=None, height=1000):
+    """
+    Menampilkan file HTML di Streamlit.
+    
+    Parameter:
+    - html_path: path ke file HTML lokal (opsional)
+    - uploaded_file: file uploader dari Streamlit (opsional)
+    - height: tinggi tampilan iframe HTML (default: 1000px)
+    """
+    if uploaded_file is not None:
+        # Jika pengguna mengupload file
+        html_content = uploaded_file.read().decode("utf-8")
+        components.html(html_content, height=height, scrolling=True)
+
+    elif html_path:
+        try:
+            with open(html_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            components.html(html_content, height=height, scrolling=True)
+        except FileNotFoundError:
+            st.error(f"❌ File tidak ditemukan: {html_path}")
+    else:
+        st.warning("⚠️ Tidak ada file HTML yang diberikan.")
 
 def tampilan_profil_lulusan(df_profil):
     st.title("🎓 Profil Lulusan Prodi Sains Data")
@@ -102,6 +129,72 @@ def tampilan_profil_lulusan(df_profil):
     sumber_unik = df_profil['Sumber'].unique()
     for sumber in sumber_unik:
         st.info(f"- {sumber}")
+
+def analisa_statistik_akhir_ds_reg(df_akhir_ds_reg):
+     # Bersihkan dan siapkan kolom Lulus
+    df_akhir_ds_reg["Lulus"] = df_akhir_ds_reg["Lulus"].fillna("❌")  # Replace NaN dengan tanda silang
+    df_akhir_ds_reg["Lulus"] = df_akhir_ds_reg["Lulus"].replace("✔", "✅")  # Pastikan ✔ jadi simbol yang konsisten
+
+    # Tampilkan judul
+    st.title("📊 Statistik Nilai Mahasiswa - Sains Data")
+
+    st.header("📋 Data Awal")
+    # Format HTML untuk warna silang merah
+    def highlight_lulus(val):
+        if val == "❌":
+            return f'<span style="color:red; font-weight:bold;">{val}</span>'
+        elif val == "✅":
+            return f'<span style="color:green; font-weight:bold;">{val}</span>'
+        return val
+
+    # Buat salinan untuk styling
+    df_styled = df_akhir_ds_reg.copy()
+    df_styled["Lulus"] = df_styled["Lulus"].apply(highlight_lulus)
+
+    # Tampilkan tabel dengan HTML
+    st.markdown(df_styled.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+    # Statistik deskriptif
+    st.header("📈 Statistik Deskriptif")
+    st.write(df_akhir_ds_reg.describe())
+
+    # Distribusi nilai akhir
+    st.subheader("📊 Distribusi Nilai Akhir")
+    fig, ax = plt.subplots()
+    sns.histplot(df_akhir_ds_reg["Nilai"], kde=True, bins=10, ax=ax, color='skyblue')
+    ax.set_xlabel("Nilai Akhir")
+    ax.set_ylabel("Jumlah Mahasiswa")
+    st.pyplot(fig)
+
+    # Distribusi Grade
+    st.subheader("🎓 Distribusi Grade")
+    grade_counts = df_akhir_ds_reg["Grade"].value_counts().sort_index()
+    st.bar_chart(grade_counts)
+
+    # Statistik kelulusan
+    st.subheader("✅ Statistik Kelulusan")
+    lulus_counts = df_akhir_ds_reg["Lulus"].value_counts()
+    st.write(lulus_counts)
+
+    # Pie Chart
+    fig2, ax2 = plt.subplots()
+    ax2.pie(lulus_counts, labels=lulus_counts.index, autopct='%1.1f%%', startangle=90, colors=['#4CAF50', '#FF5252'])
+    ax2.axis('equal')
+    st.pyplot(fig2)
+
+    # Rata-rata per komponen
+    st.header("📌 Rata-Rata Nilai per Komponen")
+    components = ["QUIZ (20 %)", "UTS (20 %)", "UAS (40 %)", "TUGAS 1 (10 %)", "TUGAS 2 (10 %)"]
+    avg_scores = df_akhir_ds_reg[components].mean()
+    st.bar_chart(avg_scores)
+
+    # Mahasiswa terbaik dan terendah
+    st.header("🏅 Mahasiswa Terbaik & Terendah")
+    st.subheader("🎖️ Nilai Tertinggi")
+    st.dataframe(df_akhir_ds_reg[df_akhir_ds_reg["Nilai"] == df_akhir_ds_reg["Nilai"].max()][["Nama Mahasiswa", "Nilai", "Grade"]])
+
+    st.subheader("🪫 Nilai Terendah")
+    st.dataframe(df_akhir_ds_reg[df_akhir_ds_reg["Nilai"] == df_akhir_ds_reg["Nilai"].min()][["Nama Mahasiswa", "Nilai", "Grade"]])
 
 def analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg ):
     st.subheader("📊 Analisa Kehadiran: Communication Protocols")
@@ -1299,6 +1392,150 @@ def statistik_dataset_nilai_reg(df_reguler):
 
     # Dropdown pilihan Mata Kuliah (unique key!)
     pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_reguler')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Reguler)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Reguler)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+
+     # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
+    fig_box = px.box(
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
+def statistik_dataset_tugas_reg(df_tugas_reguler):
+    st.header(f"📖 Statistik Nilai Tugas Kelas Reguler")
+
+    # Ubah ke format long
+    df_long = df_tugas_reguler.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
+
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
+
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_reguler_tugas')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Reguler)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Reguler)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+
+     # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
+    fig_box = px.box(
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
+def statistik_dataset_kuis_reg(df_kuis_reguler):
+    st.header(f"📖 Statistik Nilai Kuis Kelas Reguler")
+
+    # Ubah ke format long
+    df_long = df_kuis_reguler.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
+
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
+
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_reguler_kuis')
 
     # Filter berdasarkan Mata Kuliah yang dipilih
     df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
@@ -2642,25 +2879,26 @@ st.sidebar.markdown(
 )
 
 # ====== SIDEBAR MENU ======
-menu = st.sidebar.selectbox("📂 Pilih Menu", ["Profil Lulusan","Pemetaan Profesi Tiap Semester","Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen","Nilai Tugas dan Kuis", "Nilai UTS Mahasiswa", "Nilai UAS Mahasiswa","Nilai Akhir","Sentimen FeedBack Mahasiswa"])
+menu = st.sidebar.selectbox("📂 Pilih Menu", ["Profil Lulusan","Pemetaan Profesi Tiap Semester","Jumlah Mahasiswa","Kehadiran Mahasiswa", "Kehadiran Dosen","Nilai Tugas","Nilai Kuis","Nilai UTS Mahasiswa", "Nilai UAS Mahasiswa","Nilai Akhir Mahasiswa","Sentimen FeedBack Mahasiswa"])
 
 
 if menu=="Profil Lulusan":
     st.title("📅 Profil Lulusan")
     tampilan_profil_lulusan(df_profil)
 elif menu == "Pemetaan Profesi Tiap Semester":
-    st.title("📅 Pemetaan Profesi Tiap Semester")
+    st.title("📄 Preview HTML Curriculum Dashboard")
+    display_html_file(html_path="curriculum_visualization-6.html")
     # Sub-menu kelas
-    sub_kelas = st.radio("Pilih Semester", ["Semester 1", "Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"])
+    #sub_kelas = st.radio("Pilih Semester", ["Semester 1", "Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"])
 
-    if sub_kelas == "Semester 1":
-        st.subheader("📘 Mahasiswa - Kelas Reguler")
-        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Reguler.")
-        statistik_visualisasi_mahasiswa_reguler(df_mhs_reg)
-    elif sub_kelas == "Kelas Pro dan Aksel":
-        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
-        st.info("📌 Visualisasi Total Mahasiswa untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
-        tampilkan_statistik_mahasiswa(df_mhs_pro)
+    #if sub_kelas == "Semester 1":
+    #    st.subheader("📘 Mahasiswa - Kelas Reguler")
+    #    st.info("📌 Visualisasi Total Mahasiswa untuk kelas Reguler.")
+    #    dashboard_curriculum(df_curriculum)
+    #elif sub_kelas == "Kelas Pro dan Aksel":
+    #    st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+    #    st.info("📌 Visualisasi Total Mahasiswa untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+    #    tampilkan_statistik_mahasiswa(df_mhs_pro)
 
 # ====== Jumlah Seluruh Mahasiswa ======
 elif menu == "Jumlah Mahasiswa":
@@ -2783,8 +3021,44 @@ elif menu == "Kehadiran Dosen":
         st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
         tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
 
-elif menu == "Nilai Tugas dan Kuis":
-    st.title("📅 Nilai Tugas dan Kuis")
+elif menu == "Nilai Tugas":
+    st.title("📅 Nilai Tugas")
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+    st.markdown(
+        "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
+        "Update Terakhir: <b>Kamis, 10 Juli 2025, Pukul 10:35 AM</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Nilai Tugas - Kelas Reguler")
+        st.info("📌 Visualisasi Nilai Tugas kelas Reguler.")
+        statistik_dataset_tugas_reg(df_tugas_reguler)
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
+        tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
+
+elif menu == "Nilai Kuis":
+    st.title("📅 Nilai Kuis")
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+    st.markdown(
+        "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
+        "Update Terakhir: <b>Kamis, 10 Juli 2025, Pukul 10:35 AM</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Nilai Kuis - Kelas Reguler")
+        st.info("📌 Visualisasi Nilai Kuis kelas Reguler.")
+        statistik_dataset_kuis_reg(df_kuis_reguler)
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
+        st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
+        tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
+
 
 # ====== NILAI UTS ======
 elif menu == "Nilai UTS Mahasiswa":
@@ -2850,8 +3124,89 @@ elif menu == "Nilai UAS Mahasiswa":
     with tab7:
         statistik_per_mahasiswa_by_kelas(df_reguler, df_pro)
 
-elif menu == "Nilai Akhir":
-    st.title("📅 Nilai Akhir")
+elif menu == "Nilai Akhir Mahasiswa":
+    st.title("📅 Nilai Akhir Mahasiswa")
+
+    # Sub-menu kelas
+    sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
+    # Tambahkan informasi update terakhir
+    st.markdown(
+        "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
+        "Update Terakhir: <b>Kamis, 10 Juli 2025, Pukul 01:39 PM</b>"
+        "</div>",
+        unsafe_allow_html=True
+    )
+
+    if sub_kelas == "Kelas Reguler":
+        st.subheader("📘 Nilai Akhir - Kelas Reguler")
+
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Communication Protocols", 
+            "Web Client Development", 
+            "Object Oriented Programming",
+            "Data Structures", 
+            "Database Systems",
+            "Statistical Thinking",
+            "Data Wrangling"
+        ])
+
+        with tab1:
+            analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg)
+
+        with tab2:
+            analisa_statistik_kehadiran_wcd_reg(df_abs_wcd_reg)
+
+        with tab3:
+            analisa_statistik_kehadiran_oop_reg(df_abs_oop_reg)
+
+        with tab4:
+            analisa_statistik_akhir_ds_reg(df_akhir_ds_reg)
+
+        with tab5:
+            analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg)
+        
+        with tab6:
+            analisa_statistik_kehadiran_sta_reg(df_abs_sta_reg)
+
+        with tab7:
+            analisa_statistik_kehadiran_dw_reg(df_abs_dw_reg)
+                
+        
+
+    elif sub_kelas == "Kelas Pro dan Aksel":
+        st.subheader("📗 Nilai Akhir - Kelas Pro dan Aksel")
+        #st.info("📌 Visualisasi kehadiran untuk kelas Pro dan Aksel belum tersedia. Data atau fitur bisa ditambahkan di sini.")
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "Communication Protocols", 
+            "Web Client Development", 
+            "Object Oriented Programming",
+            "Data Structures", 
+            "Database Systems",
+            "Statistical Thinking",
+            "Data Wrangling"
+        ])
+
+        with tab1:
+            analisa_statistik_kehadiran_com_pro_pros(df_abs_com_pro_pros)
+
+        with tab2:
+            analisa_statistik_kehadiran_wcd_pros(df_abs_wcd_pros)
+
+        with tab3:
+            analisa_statistik_kehadiran_oop_pros(df_abs_oop_pros)
+
+        with tab4:
+            analisa_statistik_kehadiran_ds_pros(df_abs_ds_pros)
+
+        with tab5:
+            analisa_statistik_kehadiran_dbs_pros(df_abs_dbs_pros)
+        
+        with tab6:
+            analisa_statistik_kehadiran_sta_pros(df_abs_sta_pros)
+
+        with tab7:
+            analisa_statistik_kehadiran_dw_pros(df_abs_dw_pros)
+
 
 elif menu == "Sentimen FeedBack Mahasiswa":
     st.title("📅 Sentimen FeedBack Mahasiswa")
