@@ -2887,7 +2887,7 @@ if menu=="Profil Lulusan":
     tampilan_profil_lulusan(df_profil)
 elif menu == "Pemetaan Profesi Tiap Semester":
     st.title("📄 Preview HTML Curriculum Dashboard")
-    display_html_file(html_path="curriculum_visualization-6.html")
+    display_html_file(html_path="curriculum_visualization_ds_only.html")
     # Sub-menu kelas
     #sub_kelas = st.radio("Pilih Semester", ["Semester 1", "Semester 2","Semester 3","Semester 4","Semester 5","Semester 6","Semester 7","Semester 8"])
 
