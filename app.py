@@ -2925,7 +2925,7 @@ elif menu == "Kehadiran Mahasiswa":
     # Tambahkan informasi update terakhir
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Selasa, 02 Juli 2025, Pukul 11:09 AM</b>"
+        "Update Terakhir: <b>Selasa, 15 Juli 2025, Pukul 11:08 AM</b>"
         "</div>",
         unsafe_allow_html=True
     )
