@@ -1518,7 +1518,7 @@ def statistik_dataset_nilai_reg(df_reguler):
     #st.plotly_chart(fig_corr, use_container_width=True)
 
 def statistik_dataset_nilai_uas_reg(df_uas_reguler):
-    st.header(f"📖 Statistik UTS Kelas Reguler")
+    st.header(f"📖 Statistik UAS Kelas Reguler")
 
     # Ubah ke format long
     df_long = df_uas_reguler.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
