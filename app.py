@@ -68,10 +68,12 @@ df_dosen_uas = pd.read_csv("soal_dosen_uas.csv")
 df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
 df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_uas_reguler = pd.read_csv("uas_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_tugas_reguler = pd.read_csv("tugas_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_tugas_pro = pd.read_csv("tugas_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_kuis_reguler = pd.read_csv("kuis_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_akhir_ds_reg = pd.read_csv("akhir_ds_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_akhir_dbs_reg = pd.read_csv("akhir_dbs_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_pro = pd.read_csv("uts_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_abs_com_pro_reg = pd.read_csv("absensi_com_pro_reguler_sains_data.csv")
 df_abs_com_pro_pros = pd.read_csv("absensi_com_pro_pros_sains_data.csv")
@@ -196,6 +198,73 @@ def analisa_statistik_akhir_ds_reg(df_akhir_ds_reg):
 
     st.subheader("🪫 Nilai Terendah")
     st.dataframe(df_akhir_ds_reg[df_akhir_ds_reg["Nilai"] == df_akhir_ds_reg["Nilai"].min()][["Nama Mahasiswa", "Nilai", "Grade"]])
+
+def analisa_statistik_akhir_dbs_reg(df_akhir_dbs_reg):
+     # Bersihkan dan siapkan kolom Lulus
+    df_akhir_dbs_reg["Lulus"] = df_akhir_dbs_reg["Lulus"].fillna("❌")  # Replace NaN dengan tanda silang
+    df_akhir_dbs_reg["Lulus"] = df_akhir_dbs_reg["Lulus"].replace("✔", "✅")  # Pastikan ✔ jadi simbol yang konsisten
+
+    # Tampilkan judul
+    st.title("📊 Statistik Nilai Mahasiswa - Sains Data")
+
+    st.header("📋 Data Awal")
+    # Format HTML untuk warna silang merah
+    def highlight_lulus(val):
+        if val == "❌":
+            return f'<span style="color:red; font-weight:bold;">{val}</span>'
+        elif val == "✅":
+            return f'<span style="color:green; font-weight:bold;">{val}</span>'
+        return val
+
+    # Buat salinan untuk styling
+    df_styled = df_akhir_dbs_reg.copy()
+    df_styled["Lulus"] = df_styled["Lulus"].apply(highlight_lulus)
+
+    # Tampilkan tabel dengan HTML
+    st.markdown(df_styled.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+    # Statistik deskriptif
+    st.header("📈 Statistik Deskriptif")
+    st.write(df_akhir_dbs_reg.describe())
+
+    # Distribusi nilai akhir
+    st.subheader("📊 Distribusi Nilai Akhir")
+    fig, ax = plt.subplots()
+    sns.histplot(df_akhir_ds_reg["Nilai"], kde=True, bins=10, ax=ax, color='skyblue')
+    ax.set_xlabel("Nilai Akhir")
+    ax.set_ylabel("Jumlah Mahasiswa")
+    st.pyplot(fig)
+
+    # Distribusi Grade
+    st.subheader("🎓 Distribusi Grade")
+    grade_counts = df_akhir_dbs_reg["Grade"].value_counts().sort_index()
+    st.bar_chart(grade_counts)
+
+    # Statistik kelulusan
+    st.subheader("✅ Statistik Kelulusan")
+    lulus_counts = df_akhir_dbs_reg["Lulus"].value_counts()
+    st.write(lulus_counts)
+
+    # Pie Chart
+    fig2, ax2 = plt.subplots()
+    ax2.pie(lulus_counts, labels=lulus_counts.index, autopct='%1.1f%%', startangle=90, colors=['#4CAF50', '#FF5252'])
+    ax2.axis('equal')
+    st.pyplot(fig2)
+
+    # Rata-rata per komponen
+    st.header("📌 Rata-Rata Nilai per Komponen")
+    components = ["TUGAS INDIVIDU (15%)", "UTS (30%)", "UAS (40%)", "KEHADIRAN (15%)"]
+    avg_scores = df_akhir_dbs_reg[components].mean()
+    st.bar_chart(avg_scores)
+
+    # Mahasiswa terbaik dan terendah
+    st.header("🏅 Mahasiswa Terbaik & Terendah")
+    st.subheader("🎖️ Nilai Tertinggi")
+    st.dataframe(df_akhir_dbs_reg[df_akhir_dbs_reg["Nilai"] == df_akhir_dbs_reg["Nilai"].max()][["Nama Mahasiswa", "Nilai", "Grade"]])
+
+    st.subheader("🪫 Nilai Terendah")
+    st.dataframe(df_akhir_dbs_reg[df_akhir_dbs_reg["Nilai"] == df_akhir_dbs_reg["Nilai"].min()][["Nama Mahasiswa", "Nilai", "Grade"]])
+
 
 def analisa_statistik_kehadiran_com_pro_reg(df_abs_com_pro_reg ):
     st.subheader("📊 Analisa Kehadiran: Communication Protocols")
@@ -1447,6 +1516,79 @@ def statistik_dataset_nilai_reg(df_reguler):
     #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
     #)
     #st.plotly_chart(fig_corr, use_container_width=True)
+
+def statistik_dataset_nilai_uas_reg(df_uas_reguler):
+    st.header(f"📖 Statistik UTS Kelas Reguler")
+
+    # Ubah ke format long
+    df_long = df_uas_reguler.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
+
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
+
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_reguler_uas')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Reguler)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Reguler)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+
+     # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
+    fig_box = px.box(
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
 
 def statistik_dataset_tugas_reg(df_tugas_reguler):
     st.header(f"📖 Statistik Nilai Tugas Kelas Reguler")
@@ -3181,7 +3323,7 @@ elif menu == "Nilai UAS Mahasiswa":
         statistik_soal_dosen_uas(df_dosen_uas)
 
     with tab2:
-        statistik_dataset_nilai_reg(df_reguler)
+        statistik_dataset_nilai_uas_reg(df_uas_reguler)
 
     with tab3:
         statistik_dataset_nilai_pro(df_pro)
@@ -3206,7 +3348,7 @@ elif menu == "Nilai Akhir Mahasiswa":
     # Tambahkan informasi update terakhir
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Kamis, 10 Juli 2025, Pukul 01:39 PM</b>"
+        "Update Terakhir: <b>Selasa, 15 Juli 2025, Pukul 04:29 PM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -3237,7 +3379,7 @@ elif menu == "Nilai Akhir Mahasiswa":
             analisa_statistik_akhir_ds_reg(df_akhir_ds_reg)
 
         with tab5:
-            analisa_statistik_kehadiran_dbs_reg(df_abs_dbs_reg)
+            analisa_statistik_akhir_dbs_reg(df_akhir_dbs_reg)
         
         with tab6:
             analisa_statistik_kehadiran_sta_reg(df_abs_sta_reg)
