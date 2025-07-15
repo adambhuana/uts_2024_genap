@@ -69,6 +69,7 @@ df_abs_dosen = pd.read_csv("abs_dos_reguler.csv")
 df_abs_dosen_pro = pd.read_csv("abs_dos_pro.csv")
 df_reguler = pd.read_csv("uts_reguler_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_tugas_reguler = pd.read_csv("tugas_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
+df_tugas_pro = pd.read_csv("tugas_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_kuis_reguler = pd.read_csv("kuis_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_akhir_ds_reg = pd.read_csv("akhir_ds_reg_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
 df_pro = pd.read_csv("uts_pro_sains_data.csv",dtype={'NIM': str, 'Tahun': str})
@@ -1518,6 +1519,79 @@ def statistik_dataset_tugas_reg(df_tugas_reguler):
     #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
     #)
     #st.plotly_chart(fig_corr, use_container_width=True)
+
+def statistik_dataset_tugas_pro(df_tugas_pro):
+    st.header(f"📖 Statistik Nilai Tugas Kelas Profesional dan Akselerasi Eksekutif")
+
+    # Ubah ke format long
+    df_long = df_tugas_pro.melt(id_vars=["NIM", "Nama_Mahasiswa"], 
+                                var_name='Mata Kuliah', 
+                                value_name='Nilai')
+
+    # Tabel lengkap siswa
+    #st.subheader("📋 Tabel Seluruh Mahasiswa")
+    #st.dataframe(df_long, use_container_width=True)
+
+    # List Mata Kuliah untuk Dropdown
+    daftar_mk = df_long["Mata Kuliah"].unique().tolist()
+
+    # Dropdown pilihan Mata Kuliah (unique key!)
+    pilihan = st.selectbox("Pilih Mata Kuliah (Reguler)", daftar_mk, key='pilihan_mapel_pro_tugas')
+
+    # Filter berdasarkan Mata Kuliah yang dipilih
+    df_filtered = df_long[df_long["Mata Kuliah"] == pilihan]
+
+    st.subheader(f"📋 Data Mahasiswa Mata Kuliah {pilihan} (Profesional dan Aksel)")
+    st.dataframe(df_filtered, use_container_width=True)
+
+    st.subheader(f"📊 Statistik Deskriptif Mata Kuliah {pilihan} (Profesional dan Aksel)")
+    statistik = df_filtered["Nilai"].describe().reset_index()
+    statistik.columns = ["Statistik", "Nilai"]
+    st.dataframe(statistik, use_container_width=True)
+
+     # Penjelasan manusiawi
+    mean = statistik.loc[1,"Nilai"]
+    std = statistik.loc[2,"Nilai"]
+
+    st.write("🟣 Penjelasan hubungan Mean dan Standar Deviasi:")
+    if mean >= 75 and std < 10:
+        st.success("✅ Mean TINGGI dan Standar Deviasi RENDAH — distribusi siswa seragam dan memenuhi standar.")
+    elif mean >= 60 and std < 20:
+        st.info("ℹ Mean CUKUP dan Standar Deviasi SEDANG — terdapat variasi, sebagian siswa unggul, sebagian membutuhkan perbaikan.")
+    else:
+        st.error("❌ Mean RENDAH dan Standar Deviasi TINGGI — distribusi siswa tidak merata dan perlu diberi perhatian lebih.")    
+
+    st.write("""
+    **Ringkasnya:**  
+    - Mean (rata-rata) lebih cocok jika distribusinya normal dan merata.  
+    - Standar deviasi yang besar menandakan perbedaan yang cukup luas antara siswa satu dan siswa lain.  
+    - Standar deviasi yang kecil berarti siswa lebih seragam dan proses belajar lebih merata.
+    """)
+
+    # Boxplot per mata kuliah yang dipilih
+    st.subheader(f"📉 Boxplot Distribusi Nilai {pilihan} (Reguler)")
+
+    fig_box = px.box(
+        df_filtered,
+        y='Nilai',
+        color='Mata Kuliah',
+        title=f'Boxplot Distribusi Nilai Mata Kuliah {pilihan}'
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Heatmap Korelasi
+    #st.subheader("📈 Korelasi Antar Mata Kuliah (Reguler)", )
+    #df_pivot = df_long.pivot(index=["NIM", "Nama_Mahasiswa"], 
+    #                         columns='Mata Kuliah', 
+    #                         values='Nilai')
+    #fig_corr = px.imshow(
+    #    df_pivot.corr(), 
+    #    text_auto=True, 
+    #    color_continuous_scale='RdBu_r',
+    #    title='Heatmap Korelasi Mata Kuliah (Reguler)'
+    #)
+    #st.plotly_chart(fig_corr, use_container_width=True)
+
 
 def statistik_dataset_kuis_reg(df_kuis_reguler):
     st.header(f"📖 Statistik Nilai Kuis Kelas Reguler")
@@ -3008,7 +3082,7 @@ elif menu == "Kehadiran Dosen":
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Senin, 07 Juli 2025, Pukul 03:13 PM</b>"
+        "Update Terakhir: <b>Selasa, 15 Juli 2025, Pukul 02:27 PM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -3027,7 +3101,7 @@ elif menu == "Nilai Tugas":
     sub_kelas = st.radio("Pilih Kelas", ["Kelas Reguler", "Kelas Pro dan Aksel"])
     st.markdown(
         "<div style='color: grey; font-size: 14px; margin-top: -10px;'>"
-        "Update Terakhir: <b>Kamis, 10 Juli 2025, Pukul 10:35 AM</b>"
+        "Update Terakhir: <b>Selasa, 15 Juli 2025, Pukul 02:59 PM</b>"
         "</div>",
         unsafe_allow_html=True
     )
@@ -3036,9 +3110,9 @@ elif menu == "Nilai Tugas":
         st.info("📌 Visualisasi Nilai Tugas kelas Reguler.")
         statistik_dataset_tugas_reg(df_tugas_reguler)
     elif sub_kelas == "Kelas Pro dan Aksel":
-        st.subheader("📗 Kehadiran - Kelas Pro dan Aksel")
-        st.info("📌 Visualisasi Total Kehadiran Dosen untuk kelas Pro dan Aksel")
-        tampilkan_kehadiran_dosen_pro(df_abs_dosen_pro)
+        st.subheader("📘 Nilai Tugas - Kelas Profesional dan Aksel")
+        st.info("📌 Visualisasi Nilai Tugas kelas Profesional dan Aksel.")
+        statistik_dataset_tugas_pro(df_tugas_pro)
 
 elif menu == "Nilai Kuis":
     st.title("📅 Nilai Kuis")
